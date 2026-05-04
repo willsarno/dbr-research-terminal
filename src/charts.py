@@ -111,6 +111,18 @@ def format_dollars_short(value: float | int | None) -> str:
     return f"${short_number}"
 
 
+def format_billions(x: float) -> str:
+    """
+    Format money ticks using institutional-style $M / $B labels.
+    """
+    absolute_value = abs(float(x))
+    if absolute_value >= 1e9:
+        return f"${x / 1e9:.1f}B"
+    if absolute_value >= 1e6:
+        return f"${x / 1e6:.0f}M"
+    return f"${x:,.0f}"
+
+
 def _apply_short_axis_format(
     fig: go.Figure,
     axis: str = "y",
@@ -137,6 +149,9 @@ def _apply_short_axis_format(
         fig.update_yaxes(**update_kwargs)
         return fig
 
+    if currency:
+        fig.update_yaxes(nticks=5, tickformat="$~s")
+
     min_value = min(values)
     max_value = max(values)
     if min_value == max_value:
@@ -147,7 +162,7 @@ def _apply_short_axis_format(
         step = span / steps if span else 1.0
         tick_values = [min_value + (step * index) for index in range(steps + 1)]
 
-    formatter = format_dollars_short if currency else format_number_short
+    formatter = format_billions if currency else format_number_short
     tick_text = [formatter(value) for value in tick_values]
     update_kwargs["tickmode"] = "array"
     update_kwargs["tickvals"] = tick_values
