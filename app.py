@@ -46,33 +46,30 @@ def _configure_page() -> None:
         """
         <style>
         .stApp {
-            background:
-                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 30%),
-                radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 24%),
-                linear-gradient(180deg, #020617 0%, #081120 100%);
+            background: #020617;
             color: #e2e8f0;
         }
         .block-container {
             max-width: 1320px;
-            padding-top: 1.35rem;
-            padding-bottom: 3rem;
+            padding-top: 1rem;
+            padding-bottom: 2.1rem;
         }
         section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #06101f 0%, #0a1322 100%);
-            border-right: 1px solid rgba(148, 163, 184, 0.10);
+            background: #020617;
+            border-right: 1px solid #1e293b;
         }
         .dbr-sidebar-brand {
-            padding: 0.25rem 0 1rem 0;
+            padding: 0.2rem 0 0.75rem 0;
         }
         .dbr-sidebar-kicker {
-            color: #7dd3fc;
+            color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.12em;
             font-size: 0.72rem;
             margin-bottom: 0.35rem;
         }
         .dbr-sidebar-title {
-            color: #f8fafc;
+            color: #e2e8f0;
             font-weight: 700;
             font-size: 1.05rem;
             margin-bottom: 0.3rem;
@@ -86,22 +83,19 @@ def _configure_page() -> None:
             color: #94a3b8;
             font-size: 0.78rem;
             line-height: 1.45;
-            padding-top: 0.9rem;
-            border-top: 1px solid rgba(148, 163, 184, 0.12);
-            margin-top: 1rem;
+            padding-top: 0.65rem;
+            border-top: 1px solid #1e293b;
+            margin-top: 0.7rem;
         }
         .dbr-hero {
-            padding: 1.9rem 2rem;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 24px;
-            background:
-                radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 28%),
-                linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.92));
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
-            margin-bottom: 1.6rem;
+            padding: 1.35rem 1.45rem;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            background: #0b1220;
+            margin-bottom: 1rem;
         }
         .dbr-eyebrow {
-            color: #38bdf8;
+            color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.12em;
             font-size: 0.78rem;
@@ -111,7 +105,7 @@ def _configure_page() -> None:
             font-size: 2.05rem;
             font-weight: 700;
             margin: 0;
-            color: #f8fafc;
+            color: #e2e8f0;
         }
         .dbr-subtitle {
             color: #94a3b8;
@@ -119,82 +113,106 @@ def _configure_page() -> None:
             margin-bottom: 0;
         }
         .dbr-hero-copy {
-            color: #cbd5e1;
-            margin-top: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.55rem;
             max-width: 860px;
-            line-height: 1.65;
+            line-height: 1.5;
         }
         .dbr-mode-guide {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1rem;
-            margin-top: 1.15rem;
+            gap: 0.75rem;
+            margin-top: 0.8rem;
         }
         .dbr-mode-box,
         .dbr-action-card {
-            background: rgba(2, 6, 23, 0.42);
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 18px;
-            padding: 1rem 1.05rem;
-            min-height: 155px;
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 0.8rem 0.9rem;
+            min-height: 128px;
         }
         .dbr-mode-box strong,
         .dbr-action-card strong {
             display: block;
-            color: #f8fafc;
+            color: #e2e8f0;
             margin-bottom: 0.35rem;
             font-size: 1.02rem;
         }
         .dbr-action-card p,
         .dbr-mode-box p {
-            color: #cbd5e1;
+            color: #94a3b8;
             margin: 0;
             line-height: 1.55;
         }
         .dbr-tagline {
-            color: #cbd5e1;
-            margin-top: 0.9rem;
-            font-size: 0.98rem;
+            color: #94a3b8;
+            margin-top: 0.65rem;
+            font-size: 0.92rem;
             max-width: 820px;
         }
         .dbr-page-header {
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.6rem;
         }
         .dbr-page-header h2 {
             margin: 0 0 0.28rem 0;
-            color: #f8fafc;
+            color: #e2e8f0;
             font-size: 1.65rem;
         }
         .dbr-page-header p {
             margin: 0;
             color: #94a3b8;
             max-width: 780px;
-            line-height: 1.55;
+            line-height: 1.45;
         }
-        .dbr-settings-panel {
-            background: rgba(15, 23, 42, 0.82);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            padding: 0.85rem 0.95rem;
-            margin-bottom: 1.15rem;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+        .dbr-profile-card {
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 0.85rem 0.95rem 0.8rem;
+            margin-bottom: 0.7rem;
         }
-        .dbr-settings-panel h3 {
-            margin: 0 0 0.75rem 0;
-            color: #f8fafc;
-            font-size: 1rem;
+        .dbr-profile-title {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 1.28rem;
+            font-weight: 650;
+            line-height: 1.2;
+        }
+        .dbr-profile-subtitle {
+            color: #94a3b8;
+            margin: 0.22rem 0 0.65rem 0;
+            font-size: 0.84rem;
+        }
+        .dbr-profile-divider {
+            height: 1px;
+            background: #1e293b;
+            margin: 0 0 0.72rem 0;
+        }
+        .dbr-toolbar-label {
+            margin: 0 0 0.35rem 0;
+            color: #94a3b8;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .dbr-settings-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin-bottom: 0.55rem;
         }
         .dbr-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
-            margin: 16px 0 24px 0;
+            margin: 10px 0 16px 0;
         }
         .dbr-card {
-            background: rgba(15, 23, 42, 0.86);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
-            padding: 14px 16px;
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 10px 12px;
             min-height: auto;
             position: relative;
             overflow: hidden;
@@ -207,66 +225,66 @@ def _configure_page() -> None:
             left: 0;
             top: 0;
             bottom: 0;
-            width: 3px;
-            background: rgba(148, 163, 184, 0.35);
+            width: 2px;
+            background: #334155;
         }
         .dbr-card[data-tone="positive"]::before,
         .dbr-flag[data-tone="positive"]::before,
         .dbr-panel[data-tone="positive"]::before {
-            background: rgba(34, 197, 94, 0.70);
+            background: #22c55e;
         }
         .dbr-card[data-tone="negative"]::before,
         .dbr-flag[data-tone="negative"]::before,
         .dbr-panel[data-tone="negative"]::before {
-            background: rgba(239, 68, 68, 0.75);
+            background: #ef4444;
         }
         .dbr-card[data-tone="neutral"]::before,
         .dbr-flag[data-tone="neutral"]::before,
         .dbr-panel[data-tone="neutral"]::before {
-            background: rgba(56, 189, 248, 0.65);
+            background: #3b82f6;
         }
         .dbr-card[data-tone="caution"]::before,
         .dbr-flag[data-tone="caution"]::before,
         .dbr-panel[data-tone="caution"]::before {
-            background: rgba(245, 158, 11, 0.75);
+            background: #64748b;
         }
         .dbr-card-label {
-            color: #9fb4cf;
+            color: #94a3b8;
             font-size: 0.77rem;
             margin-bottom: 0.32rem;
             text-transform: uppercase;
             letter-spacing: 0.09em;
         }
         .dbr-card-value {
-            color: #f8fafc;
-            font-size: 1.5rem;
+            color: #e2e8f0;
+            font-size: 1.35rem;
             font-weight: 700;
             line-height: 1.2;
         }
         .dbr-card-sub {
             color: #94a3b8;
-            font-size: 0.82rem;
-            margin-top: 0.28rem;
-            line-height: 1.45;
+            font-size: 0.78rem;
+            margin-top: 0.2rem;
+            line-height: 1.35;
         }
         .dbr-flag {
-            background: rgba(15, 23, 42, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 14px;
-            padding: 0.8rem 0.95rem;
-            min-height: 88px;
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 0.65rem 0.75rem;
+            min-height: 74px;
             position: relative;
             overflow: hidden;
         }
         .dbr-flag-label {
-            color: #9fb4cf;
+            color: #94a3b8;
             font-size: 0.74rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             margin-bottom: 0.35rem;
         }
         .dbr-flag-value {
-            color: #f8fafc;
+            color: #e2e8f0;
             font-size: 1.02rem;
             font-weight: 700;
         }
@@ -275,90 +293,108 @@ def _configure_page() -> None:
             font-size: 0.8rem;
             margin-top: 0.25rem;
         }
-        .dbr-panel {
-            background: rgba(15, 23, 42, 0.84);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            padding: 0.75rem 0.9rem;
-            margin-bottom: 0.85rem;
-            position: relative;
-            overflow: hidden;
+        .dbr-section-header {
+            margin: 0.15rem 0 0.45rem 0;
         }
-        .dbr-panel h3 {
-            margin: 0 0 0.55rem 0;
-            color: #f8fafc;
-        }
-        .dbr-panel-copy {
-            color: #94a3b8;
-            font-size: 0.88rem;
-            line-height: 1.45;
+        .dbr-section-header h3 {
             margin: 0;
+            color: #e2e8f0;
+            font-size: 0.98rem;
+            font-weight: 600;
+        }
+        .dbr-section-copy {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            line-height: 1.35;
+            margin: 0.18rem 0 0 0;
         }
         .dbr-section-title {
-            margin: 0 0 0.85rem 0;
-            color: #f8fafc;
-            font-size: 1.12rem;
+            margin: 0 0 0.55rem 0;
+            color: #e2e8f0;
+            font-size: 1.02rem;
         }
         .dbr-snapshot {
-            background: rgba(15, 23, 42, 0.82);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            padding: 1rem 1.15rem;
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .dbr-snapshot::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: rgba(56, 189, 248, 0.65);
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 0.56rem 0.72rem;
+            margin-top: 0.45rem;
+            margin-bottom: 0.45rem;
         }
         .dbr-snapshot h3 {
             margin-top: 0;
-            margin-bottom: 0.65rem;
-            color: #f8fafc;
+            margin-bottom: 0.3rem;
+            color: #e2e8f0;
+            font-size: 0.94rem;
         }
         .dbr-snapshot ul {
             margin: 0;
-            padding-left: 1.2rem;
+            padding-left: 1rem;
             color: #dbe4f0;
         }
         .dbr-snapshot li {
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.18rem;
+            font-size: 0.8rem;
+            line-height: 1.35;
+        }
+        .dbr-summary-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 10px;
+            margin: 10px 0 14px 0;
+        }
+        .dbr-insight {
+            background: #111827;
+            border-left: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin: 8px 0 12px 0;
+        }
+        .dbr-insight strong {
+            color: #94a3b8;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .dbr-inline-alert {
+            background: #1f2937;
+            border-left: 2px solid #d97706;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 8px 0 12px 0;
         }
         .dbr-score-note {
             color: #94a3b8;
-            font-size: 0.9rem;
-            margin-top: 0.8rem;
+            font-size: 0.82rem;
+            margin-top: 0.5rem;
         }
         .dbr-muted-note {
             color: #94a3b8;
-            font-size: 0.9rem;
-            margin-top: 0.8rem;
+            font-size: 0.82rem;
+            margin-top: 0.5rem;
         }
         .dbr-valuation-panel {
-            background: rgba(15, 23, 42, 0.82);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            padding: 1rem 1rem 0.7rem;
-            margin-top: 0.5rem;
-            margin-bottom: 1rem;
+            background: #0b1220;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 0.7rem 0.78rem 0.55rem;
+            margin-top: 0.35rem;
+            margin-bottom: 0.65rem;
         }
         .dbr-valuation-panel h3 {
-            margin: 0 0 0.9rem 0;
-            color: #f8fafc;
+            margin: 0 0 0.55rem 0;
+            color: #e2e8f0;
         }
         .dbr-compare-panel {
-            background: rgba(15, 23, 42, 0.82);
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 20px;
-            padding: 1rem 1.1rem 1.1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.45rem;
         }
         .dbr-bestworst-grid {
             display: grid;
@@ -371,24 +407,54 @@ def _configure_page() -> None:
             gap: 0.8rem;
         }
         .dbr-footer {
-            margin-top: 2.25rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            margin-top: 1.5rem;
+            padding-top: 0.7rem;
+            border-top: 1px solid #1e293b;
             color: #94a3b8;
             font-size: 0.83rem;
         }
         div[data-testid="stMarkdownContainer"] p {
-            line-height: 1.55;
+            line-height: 1.4;
         }
         div[data-testid="stTextInput"] input {
-            background-color: rgba(15, 23, 42, 0.92);
-            color: #f8fafc;
+            background-color: #0b1220;
+            color: #e2e8f0;
+            border: 1px solid #1e293b;
             border-radius: 12px;
         }
         div[data-testid="stSelectbox"] > div,
         div[data-testid="stMultiSelect"] > div,
         div[data-testid="stNumberInput"] input {
-            background-color: rgba(15, 23, 42, 0.92);
+            background-color: #0b1220;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+        }
+        div[data-testid="stTextInput"] input:focus,
+        div[data-testid="stNumberInput"] input:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stButton"] button[kind="primary"] {
+            background: #3b82f6;
+            color: #e2e8f0;
+            border: 1px solid #3b82f6;
+        }
+        div[data-testid="stButton"] button[kind="secondary"] {
+            background: transparent;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+        div[data-testid="stButton"] button:hover {
+            box-shadow: none;
+            filter: none;
+        }
+        div[data-testid="stButton"] button[kind="primary"]:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+        div[data-testid="stButton"] button[kind="secondary"]:hover {
+            background: #0b1220;
+            border-color: #475569;
             border-radius: 12px;
         }
         div[data-testid="stButton"] button {
@@ -396,23 +462,38 @@ def _configure_page() -> None:
             min-height: 2.65rem;
         }
         div[data-testid="stDataFrame"] {
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
             overflow: hidden;
         }
         div[data-testid="stDataEditor"] {
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
             overflow: hidden;
         }
+        button[data-baseweb="tab"] {
+            color: #94a3b8 !important;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #e2e8f0 !important;
+            border-bottom-color: #3b82f6 !important;
+        }
+        [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+            background-color: #3b82f6 !important;
+        }
+        div[data-testid="stDataFrame"] [data-testid="stTable"] td,
+        div[data-testid="stDataFrame"] [data-testid="stTable"] th {
+            padding-top: 0.35rem;
+            padding-bottom: 0.35rem;
+        }
         div[data-testid="stTabs"] {
-            margin-top: 0.85rem;
+            margin-top: 0.55rem;
         }
         div[data-testid="stPlotlyChart"] {
-            margin-bottom: 1.05rem;
+            margin-bottom: 0.7rem;
         }
         div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stPlotlyChart"]) {
-            padding-top: 0.25rem;
+            padding-top: 0.1rem;
         }
         </style>
         """,
@@ -479,11 +560,11 @@ def _render_page_header(title: str, description: str) -> None:
 
 def _render_panel_header(title: str, tone: str = "neutral", copy: str | None = None) -> None:
     """
-    Render a compact standalone section header without wrapping later widgets in raw HTML.
+    Render a compact standalone text section header.
     """
-    copy_html = f'<p class="dbr-panel-copy">{escape(copy)}</p>' if copy else ""
+    copy_html = f'<p class="dbr-section-copy">{escape(copy)}</p>' if copy else ""
     st.markdown(
-        f'<div class="dbr-panel" data-tone="{escape(tone)}"><h3>{escape(title)}</h3>{copy_html}</div>',
+        f'<div class="dbr-section-header"><h3>{escape(title)}</h3>{copy_html}</div>',
         unsafe_allow_html=True,
     )
 
@@ -516,9 +597,9 @@ def _render_sidebar() -> str:
 
 def _open_settings_panel(title: str = "Analysis Settings") -> None:
     """
-    Render a compact settings header card.
+    Render a compact settings toolbar label.
     """
-    st.markdown(f'<div class="dbr-settings-panel"><h3>{escape(title)}</h3></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="dbr-toolbar-label">{escape(title)}</div>', unsafe_allow_html=True)
 
 
 def _close_settings_panel() -> None:
@@ -658,11 +739,12 @@ def _display_company_header(ticker: str, company_info_df: pd.DataFrame, metrics_
     )
     st.markdown(
         f"""
-        <div class="dbr-panel" data-tone="neutral">
+        <div class="dbr-profile-card">
             <div class="dbr-eyebrow">Company Profile</div>
-            <h2 style="margin:0;color:#f8fafc;">{company_name} ({ticker.upper()})</h2>
-            <p class="dbr-subtitle" style="margin-top:0.35rem;">Latest company profile, market context, and reported financial snapshot.</p>
-            <div class="dbr-info-grid" style="margin-top:1rem;">{info_html}</div>
+            <h2 class="dbr-profile-title">{escape(company_name)} ({escape(ticker.upper())})</h2>
+            <p class="dbr-profile-subtitle">Latest company profile, market context, and reported financial snapshot.</p>
+            <div class="dbr-profile-divider"></div>
+            <div class="dbr-info-grid">{info_html}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -710,6 +792,46 @@ def _render_metric_card_grid(cards: list[tuple[str, str, str, str]]) -> None:
     html_parts.append("</div>")
     full_grid_html = "".join(html_parts)
     st.markdown(full_grid_html, unsafe_allow_html=True)
+
+
+def _render_summary_strip(items: list[tuple[str, str, str, str]]) -> None:
+    """
+    Render a compact executive-summary row using the shared card styling.
+    """
+    html_parts = ['<div class="dbr-summary-strip">']
+    for label, value, sublabel, tone in items:
+        html_parts.append(
+            (
+                f'<div class="dbr-card" data-tone="{escape(tone)}">'
+                f'<div class="dbr-card-label">{escape(str(label))}</div>'
+                f'<div class="dbr-card-value" style="font-size:1.02rem;">{escape(str(value))}</div>'
+                f'<div class="dbr-card-sub">{escape(str(sublabel))}</div>'
+                "</div>"
+            )
+        )
+    html_parts.append("</div>")
+    st.markdown("".join(html_parts), unsafe_allow_html=True)
+
+
+def _render_dbr_insight(text: str) -> None:
+    """
+    Render a compact DBR insight bar.
+    """
+    st.markdown(
+        f'<div class="dbr-insight"><strong>DBR Insight</strong>{escape(text)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_inline_alert(message: str, tone: str = "warning") -> None:
+    """
+    Render a subtle inline alert panel.
+    """
+    border_color = "#d97706" if tone == "warning" else "#ef4444"
+    st.markdown(
+        f'<div class="dbr-inline-alert" style="border-left-color:{border_color};">{escape(message)}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_flag_card(column: Any, label: str, value: str, sublabel: str, tone: str = "neutral") -> None:
@@ -948,9 +1070,36 @@ def _executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: bool) ->
 
 
 def _display_executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: bool) -> None:
-    bullets_html = "".join(
-        f"<li>{bullet}</li>" for bullet in _executive_snapshot(metrics_df, is_financial_company)
-    )
+    concise_bullets: list[str] = []
+    latest_revenue_growth = latest_metric_value(metrics_df, "revenue_growth_pct")
+    latest_net_income = latest_metric_value(metrics_df, "net_income")
+    latest_ebitda = latest_metric_value(metrics_df, "ebitda")
+    latest_fcf = latest_metric_value(metrics_df, "free_cash_flow")
+    latest_net_cash_debt = latest_metric_value(metrics_df, "net_cash_debt")
+    latest_margin = latest_metric_value(metrics_df, "net_income_margin_pct")
+    prior_margin = _latest_and_prior(metrics_df, "net_income_margin_pct")[1]
+
+    if latest_revenue_growth is not None and not pd.isna(latest_revenue_growth):
+        concise_bullets.append(f"Revenue growth: {format_percent(latest_revenue_growth)}")
+    if latest_net_income is not None and not pd.isna(latest_net_income):
+        concise_bullets.append(f"Net income: {format_money(latest_net_income)}")
+    if latest_ebitda is not None and not pd.isna(latest_ebitda):
+        concise_bullets.append(f"EBITDA: {format_money(latest_ebitda)}")
+    if latest_fcf is not None and not pd.isna(latest_fcf):
+        concise_bullets.append(f"Free cash flow: {format_money(latest_fcf)}")
+    if latest_net_cash_debt is not None and not pd.isna(latest_net_cash_debt):
+        balance_read = "net cash" if latest_net_cash_debt >= 0 else "net debt"
+        concise_bullets.append(f"Balance sheet: {balance_read} {format_money(abs(float(latest_net_cash_debt)))}")
+    if latest_margin is not None and prior_margin is not None and not pd.isna(latest_margin) and not pd.isna(prior_margin):
+        margin_delta = float(latest_margin) - float(prior_margin)
+        trend_word = "improved" if margin_delta >= 0 else "deteriorated"
+        concise_bullets.append(f"Margin trend: {trend_word} {abs(margin_delta):.1%}")
+    if is_financial_company:
+        concise_bullets.append("Financials caveat: FCF and margins can be less comparable")
+    if not concise_bullets:
+        concise_bullets = _executive_snapshot(metrics_df, is_financial_company)
+
+    bullets_html = "".join(f"<li>{escape(bullet)}</li>" for bullet in concise_bullets[:6])
     st.markdown(
         f"""
         <div class="dbr-snapshot">
@@ -960,6 +1109,73 @@ def _display_executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: 
         """,
         unsafe_allow_html=True,
     )
+
+
+def _display_company_summary_strip(metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
+    """
+    Render a compact executive summary for single-company research.
+    """
+    quality = build_business_quality_score(metrics_df, company_info_df)
+    revenue_growth = latest_metric_value(metrics_df, "revenue_growth_pct")
+    net_income = latest_metric_value(metrics_df, "net_income")
+    risks = quality.get("risks", [])
+
+    growth_read = "Unavailable"
+    growth_tone = "neutral"
+    if revenue_growth is not None and not pd.isna(revenue_growth):
+        if revenue_growth > 0.12:
+            growth_read = "Strong"
+            growth_tone = "positive"
+        elif revenue_growth >= 0:
+            growth_read = "Moderate"
+            growth_tone = "neutral"
+        else:
+            growth_read = "Negative"
+            growth_tone = "negative"
+
+    profitability_read = "Unavailable"
+    profitability_tone = "neutral"
+    if net_income is not None and not pd.isna(net_income):
+        profitability_read = "Profitable" if net_income >= 0 else "Loss-making"
+        profitability_tone = "positive" if net_income >= 0 else "negative"
+
+    summary_items = [
+        ("DBR Verdict", quality.get("label", "Mixed"), f"Score {quality.get('score', 'N/A')}/100", "neutral"),
+        ("Growth Read", growth_read, format_percent(revenue_growth), growth_tone),
+        ("Profitability", profitability_read, format_money(net_income), profitability_tone),
+        ("Key Risk", risks[0] if risks else "No major risk flagged", "Highest-priority watch item", "caution" if risks else "neutral"),
+    ]
+    _render_summary_strip(summary_items)
+
+    fcf = latest_metric_value(metrics_df, "free_cash_flow")
+    net_cash_debt = latest_metric_value(metrics_df, "net_cash_debt")
+    watch_item = risks[0] if risks else "valuation discipline and consistency of execution"
+    growth_text = (
+        "Growth remains strong"
+        if revenue_growth is not None and not pd.isna(revenue_growth) and revenue_growth > 0.12
+        else "Growth is moderate"
+        if revenue_growth is not None and not pd.isna(revenue_growth) and revenue_growth >= 0
+        else "Growth is under pressure"
+    )
+    profitability_text = (
+        "profitability is positive"
+        if net_income is not None and not pd.isna(net_income) and net_income >= 0
+        else "profitability remains pressured"
+    )
+    cash_flow_text = (
+        "free cash flow is positive"
+        if fcf is not None and not pd.isna(fcf) and fcf >= 0
+        else "free cash flow is constrained"
+    )
+    balance_text = (
+        "the balance sheet is net cash"
+        if net_cash_debt is not None and not pd.isna(net_cash_debt) and net_cash_debt >= 0
+        else "the balance sheet carries net debt"
+        if net_cash_debt is not None and not pd.isna(net_cash_debt)
+        else "balance sheet visibility is limited"
+    )
+    insight = f"{growth_text}, {profitability_text}, and {cash_flow_text}. {balance_text.capitalize()}. The key watch item is {watch_item.lower()}."
+    _render_dbr_insight(insight)
 
 
 def _display_valuation_section(company_info_df: pd.DataFrame) -> None:
@@ -1229,6 +1445,36 @@ def _display_comparison_summary(comparison_df: pd.DataFrame) -> None:
     _render_metric_card_grid(cards)
 
 
+def _display_peer_summary_strip(comparison_df: pd.DataFrame) -> None:
+    """
+    Render a compact peer-comparison executive summary.
+    """
+    valuation_series = pd.to_numeric(comparison_df.get("P/S"), errors="coerce")
+    growth_series = pd.to_numeric(comparison_df.get("Revenue Growth"), errors="coerce")
+    score_series = pd.to_numeric(comparison_df.get("Business Quality Score"), errors="coerce")
+
+    key_caveat = "Some valuation or financial fields may be unavailable across peers."
+    if valuation_series.notna().any() and valuation_series.max() > 10:
+        key_caveat = "At least one peer trades at a materially elevated sales multiple."
+    elif growth_series.notna().any() and growth_series.min() < 0:
+        key_caveat = "Growth dispersion is wide, with at least one peer showing contraction."
+
+    items = [
+        ("Best Overall", _best_row_by_numeric(comparison_df, "Business Quality Score"), "Highest quality score", "positive"),
+        ("Cheapest Valuation", _best_row_by_numeric(comparison_df, "P/S", ascending=True), "Lowest price-to-sales", "neutral"),
+        ("Strongest Growth", _best_row_by_numeric(comparison_df, "Revenue Growth"), "Highest revenue growth", "positive"),
+        ("Key Caveat", key_caveat, "Important context across the peer set", "caution"),
+    ]
+    _render_summary_strip(items)
+    insight = (
+        f"Best overall: {_best_row_by_numeric(comparison_df, 'Business Quality Score')}. "
+        f"Cheapest valuation: {_best_row_by_numeric(comparison_df, 'P/S', ascending=True)}. "
+        f"Strongest growth: {_best_row_by_numeric(comparison_df, 'Revenue Growth')}. "
+        f"Key caveat: {key_caveat}"
+    )
+    _render_dbr_insight(insight)
+
+
 def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
     """
     Render comparison-mode charts below the summary.
@@ -1329,6 +1575,9 @@ def _run_comparison_analysis(
         return
 
     comparison_df = pd.DataFrame(comparison_rows)
+    _render_panel_header("Peer Summary", copy="Top-level read on leadership, valuation, and caveats across the selected peer set.")
+    _display_peer_summary_strip(comparison_df)
+    _section_spacer(0.18)
     _render_panel_header("Comparison Summary")
     _display_comparison_summary(comparison_df)
     _section_spacer(0.35)
@@ -1343,7 +1592,7 @@ def _run_comparison_analysis(
     st.dataframe(_format_comparison_table(comparison_df), use_container_width=True, hide_index=True)
 
     if failed_tickers:
-        st.warning(f"Some tickers could not be loaded: {', '.join(failed_tickers)}")
+        _render_inline_alert(f"Some tickers could not be loaded: {', '.join(failed_tickers)}", tone="warning")
 
 
 def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
@@ -1379,6 +1628,57 @@ def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
     tracking_error = benchmark_metrics.get("tracking_error")
     if pd.notna(pd.to_numeric(tracking_error, errors="coerce")):
         st.caption(f"Tracking error: {format_percent(tracking_error)}")
+
+
+def _display_portfolio_summary_strip(analysis: dict[str, Any]) -> None:
+    """
+    Render a compact portfolio executive summary.
+    """
+    metrics = analysis.get("metrics", {})
+    benchmark_metrics = analysis.get("benchmark_metrics", {})
+    warnings_list = analysis.get("warnings", [])
+    volatility = pd.to_numeric(metrics.get("annualized_volatility"), errors="coerce")
+    max_drawdown = pd.to_numeric(metrics.get("max_drawdown"), errors="coerce")
+
+    risk_level = "Moderate"
+    risk_tone = "neutral"
+    if pd.notna(volatility):
+        if float(volatility) > 0.25:
+            risk_level = "High"
+            risk_tone = "negative"
+        elif float(volatility) < 0.15:
+            risk_level = "Low"
+            risk_tone = "positive"
+
+    drawdown_read = "Contained"
+    drawdown_tone = "positive"
+    if pd.notna(max_drawdown):
+        if float(max_drawdown) < -0.25:
+            drawdown_read = "Deep drawdown"
+            drawdown_tone = "negative"
+        elif float(max_drawdown) < -0.15:
+            drawdown_read = "Moderate drawdown"
+            drawdown_tone = "caution"
+
+    concentration_text = "Balanced"
+    concentration_tone = "neutral"
+    if any("concentration" in message.lower() or "correlation" in message.lower() for message in warnings_list):
+        concentration_text = "Elevated concentration/correlation"
+        concentration_tone = "caution"
+
+    items = [
+        ("Return vs Benchmark", format_percent(benchmark_metrics.get("excess_return")), "Excess return", _tone_from_numeric(benchmark_metrics.get("excess_return"))),
+        ("Risk Level", risk_level, format_percent(volatility), risk_tone),
+        ("Drawdown Read", drawdown_read, format_percent(max_drawdown), drawdown_tone),
+        ("Concentration", concentration_text, "Positioning / correlation context", concentration_tone),
+    ]
+    _render_summary_strip(items)
+    insight = (
+        f"Return vs benchmark is {format_percent(benchmark_metrics.get('excess_return'))}, "
+        f"with a {risk_level.lower()} risk profile. "
+        f"Drawdown has been {drawdown_read.lower()}, and the current portfolio shows {concentration_text.lower()}."
+    )
+    _render_dbr_insight(insight)
 
 
 def _display_what_if_results(what_if_result: dict[str, Any]) -> None:
@@ -1442,7 +1742,7 @@ def _run_portfolio_analysis() -> None:
         st.session_state["proposed_portfolio_editor_version"] = 0
 
     _open_settings_panel("Analysis Settings")
-    timeframe_col, benchmark_col, custom_col = st.columns([1.1, 1.0, 1.1])
+    timeframe_col, benchmark_col, custom_col, run_toolbar_col = st.columns([1.05, 1.0, 1.15, 0.9])
     with timeframe_col:
         price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
     with benchmark_col:
@@ -1453,6 +1753,9 @@ def _run_portfolio_analysis() -> None:
             value="SPY" if benchmark_choice == "Custom" else benchmark_choice,
             help="Enter a public market ETF or ticker if you want a custom benchmark.",
         ).strip().upper()
+    with run_toolbar_col:
+        st.markdown('<div style="height:1.55rem;"></div>', unsafe_allow_html=True)
+        run_clicked = st.button("Run Portfolio Analysis", type="primary", use_container_width=True)
     benchmark_ticker = benchmark_custom if benchmark_choice == "Custom" and benchmark_custom else benchmark_choice
 
     _render_panel_header("Holdings Editor", copy="Add, edit, or delete holdings. Use CASH for cash allocation.")
@@ -1475,11 +1778,11 @@ def _run_portfolio_analysis() -> None:
     total_weight = float(pd.to_numeric(holdings_df.get("Weight %", pd.Series(dtype=float)), errors="coerce").fillna(0.0).sum()) if not holdings_df.empty else 0.0
     st.write(f"**Total Weight:** {total_weight:.1f}%")
     for warning in holding_warnings:
-        st.warning(warning)
+        _render_inline_alert(warning, tone="warning")
 
     action_col, reset_col = st.columns([1, 1])
     with action_col:
-        run_clicked = st.button("Run Portfolio Analysis", type="primary", use_container_width=True)
+        st.markdown('<div class="dbr-section-copy">Normalize before running if weights do not equal 100%.</div>', unsafe_allow_html=True)
     with reset_col:
         reset_clicked = st.button("Reset Portfolio", use_container_width=True)
     _close_settings_panel()
@@ -1497,7 +1800,7 @@ def _run_portfolio_analysis() -> None:
         return
 
     if abs(total_weight - 100.0) > 0.01 and not normalize_weights:
-        st.warning("Portfolio weights must equal 100% unless normalization is enabled.")
+        _render_inline_alert("Portfolio weights must equal 100% unless normalization is enabled.", tone="warning")
         if "portfolio_analysis_result" not in st.session_state:
             return
 
@@ -1527,55 +1830,45 @@ def _run_portfolio_analysis() -> None:
         return
 
     _section_spacer(0.25)
+    _render_panel_header("Executive Summary", copy="Return, risk, drawdown, and concentration reads for the current portfolio versus the chosen benchmark.")
+    _display_portfolio_summary_strip(analysis)
+    _section_spacer(0.18)
     _render_panel_header("Portfolio Scorecard")
     _display_portfolio_metrics(analysis.get("metrics", {}))
     _section_spacer(0.35)
 
     if analysis.get("warnings", []):
-        warning_html = "".join(f"<li>{escape(str(message))}</li>" for message in analysis.get("warnings", []))
-        st.markdown(
-            f"""
-            <div class="dbr-panel" data-tone="caution">
-                <h3>Risk Notes</h3>
-                <ul style="margin:0;padding-left:1.15rem;color:#dbe4f0;">
-                    {warning_html}
-                </ul>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        warning_html = "".join(f"<div>{escape(str(message))}</div>" for message in analysis.get("warnings", []))
+        st.markdown(f'<div class="dbr-inline-alert">{warning_html}</div>', unsafe_allow_html=True)
 
     if analysis.get("benchmark_available"):
         _render_panel_header("Benchmark Comparison")
         _display_benchmark_summary(analysis)
         _section_spacer(0.35)
     else:
-        st.info("Benchmark data was unavailable for the selected benchmark ticker.")
+        _render_inline_alert("Benchmark data was unavailable for the selected benchmark ticker.", tone="warning")
 
     _render_panel_header("Portfolio Charts")
+    hero_benchmark_chart = create_portfolio_vs_benchmark_chart(
+        analysis.get("portfolio_equity", pd.Series(dtype="float64")),
+        analysis.get("benchmark_equity", pd.Series(dtype="float64")),
+        analysis.get("benchmark_ticker", benchmark_ticker),
+    ) if analysis.get("benchmark_available") else create_portfolio_cumulative_chart(
+        analysis.get("portfolio_equity", pd.Series(dtype="float64"))
+    )
+    st.plotly_chart(hero_benchmark_chart, use_container_width=True)
+
     left_col, right_col = st.columns(2)
     with left_col:
         st.plotly_chart(
-            create_portfolio_cumulative_chart(analysis.get("portfolio_equity", pd.Series(dtype="float64"))),
+            create_holdings_comparison_chart(analysis.get("holdings_normalized_df", pd.DataFrame())),
             use_container_width=True,
         )
-        if analysis.get("benchmark_available"):
-            st.plotly_chart(
-                create_portfolio_vs_benchmark_chart(
-                    analysis.get("portfolio_equity", pd.Series(dtype="float64")),
-                    analysis.get("benchmark_equity", pd.Series(dtype="float64")),
-                    analysis.get("benchmark_ticker", benchmark_ticker),
-                ),
-                use_container_width=True,
-            )
         st.plotly_chart(
             create_allocation_chart(analysis.get("weights_df", holdings_df)),
             use_container_width=True,
         )
-        st.plotly_chart(
-            create_drawdown_chart(analysis.get("portfolio_drawdown", pd.Series(dtype="float64"))),
-            use_container_width=True,
-        )
+    with right_col:
         if analysis.get("benchmark_available"):
             st.plotly_chart(
                 create_drawdown_comparison_chart(
@@ -1585,11 +1878,11 @@ def _run_portfolio_analysis() -> None:
                 ),
                 use_container_width=True,
             )
-    with right_col:
-        st.plotly_chart(
-            create_holdings_comparison_chart(analysis.get("holdings_normalized_df", pd.DataFrame())),
-            use_container_width=True,
-        )
+        else:
+            st.plotly_chart(
+                create_drawdown_chart(analysis.get("portfolio_drawdown", pd.Series(dtype="float64"))),
+                use_container_width=True,
+            )
         st.plotly_chart(
             create_correlation_heatmap(analysis.get("correlation_df", pd.DataFrame())),
             use_container_width=True,
@@ -1631,7 +1924,7 @@ def _run_portfolio_analysis() -> None:
     )
     st.write(f"**Proposed Total Weight:** {proposed_total_weight:.1f}%")
     for warning in proposed_warnings:
-        st.warning(warning)
+        _render_inline_alert(warning, tone="warning")
 
     what_if_col, proposed_reset_col = st.columns(2)
     with what_if_col:
@@ -1647,9 +1940,9 @@ def _run_portfolio_analysis() -> None:
 
     if run_what_if_clicked:
         if proposed_holdings_df.empty:
-            st.warning("Add at least one proposed holding to run what-if analysis.")
+            _render_inline_alert("Add at least one proposed holding to run what-if analysis.", tone="warning")
         elif abs(proposed_total_weight - 100.0) > 0.01 and not normalize_proposed_weights:
-            st.warning("Proposed portfolio weights must equal 100% unless normalization is enabled.")
+            _render_inline_alert("Proposed portfolio weights must equal 100% unless normalization is enabled.", tone="warning")
         else:
             with st.spinner("Running what-if analysis..."):
                 proposed_price_history_map: dict[str, pd.DataFrame] = {}
@@ -1832,14 +2125,14 @@ def _render_data_warnings(metrics_df: pd.DataFrame, period_type: str) -> None:
     """
     warnings_list = metrics_df.attrs.get("warnings", []) if isinstance(metrics_df, pd.DataFrame) else []
     for message in warnings_list:
-        st.warning(message)
+        _render_inline_alert(message, tone="warning")
 
     if period_type == "quarterly" and (not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty):
-        st.warning(
+        _render_inline_alert(
             "Quarterly financial statement data was not available for this ticker. Some companies, ETFs, funds, or unsupported symbols may not expose quarterly statements through yfinance."
         )
     elif not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty:
-        st.warning(
+        _render_inline_alert(
             "Financial statement data was not available for this ticker. This may happen for ETFs, funds, or unsupported symbols."
         )
 
@@ -1923,6 +2216,9 @@ def _run_analysis(
     is_financial = _is_financial_company(company_info_df)
     _display_company_header(ticker, company_info_df, metrics_df)
     _section_spacer(0.2)
+    _render_panel_header("Executive Summary", copy="Top-down read on quality, growth, profitability, and the main watch item.")
+    _display_company_summary_strip(metrics_df, company_info_df)
+    _section_spacer(0.18)
     _display_kpis(metrics_df)
     _section_spacer(0.45)
     _display_quality_flags(metrics_df)
@@ -1931,7 +2227,7 @@ def _run_analysis(
     _display_data_availability(data, financial_period.lower())
 
     if is_financial:
-        st.warning(
+        _render_inline_alert(
             "Note: For financial companies, free cash flow and traditional margin metrics can be less useful because cash flow statements reflect lending, deposits, and balance-sheet activity."
         )
 
@@ -1958,7 +2254,7 @@ def main() -> None:
 
         _section_spacer(0.25)
         _open_settings_panel("Analysis Settings")
-        input_col, period_col, timeframe_col, count_col = st.columns([2.6, 1.2, 1.2, 1.2])
+        input_col, period_col, timeframe_col, count_col, run_col = st.columns([2.6, 1.2, 1.2, 1.2, 0.9])
         with input_col:
             ticker = st.text_input(
                 "Ticker Symbol",
@@ -1972,8 +2268,8 @@ def main() -> None:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
         with count_col:
             display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
-        action_col = st.columns([1, 4])[0]
-        with action_col:
+        with run_col:
+            st.markdown('<div style="height:1.55rem;"></div>', unsafe_allow_html=True)
             run_clicked = st.button("Run Analysis", type="primary", use_container_width=True)
         _close_settings_panel()
 
@@ -2001,7 +2297,7 @@ def main() -> None:
 
         _section_spacer(0.25)
         _open_settings_panel("Analysis Settings")
-        input_col, period_col, timeframe_col = st.columns([3.0, 1.3, 1.3])
+        input_col, period_col, timeframe_col, run_col = st.columns([3.0, 1.3, 1.3, 0.9])
         with input_col:
             comparison_input = st.text_input(
                 "Ticker Symbols",
@@ -2012,8 +2308,8 @@ def main() -> None:
             financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
         with timeframe_col:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
-        action_col = st.columns([1, 4])[0]
-        with action_col:
+        with run_col:
+            st.markdown('<div style="height:1.55rem;"></div>', unsafe_allow_html=True)
             run_clicked = st.button("Run Comparison", type="primary", use_container_width=True)
         _close_settings_panel()
 

@@ -12,26 +12,26 @@ def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.
     """
     fig.update_layout(
         template="plotly_dark",
-        paper_bgcolor="#0b1220",
-        plot_bgcolor="#0f172a",
-        font={"family": "Arial, sans-serif", "color": "#dbe4f0"},
+        paper_bgcolor="#020617",
+        plot_bgcolor="#0B1220",
+        font={"family": "Arial, sans-serif", "color": "#E2E8F0"},
         hovermode="x unified",
-        margin={"l": 58, "r": 24, "t": 96, "b": 42},
+        margin={"l": 56, "r": 18, "t": 92, "b": 34},
         legend={
             "orientation": "h",
-            "yanchor": "top",
-            "y": 1.07,
+            "yanchor": "bottom",
+            "y": 1.02,
             "x": 0,
             "xanchor": "left",
             "bgcolor": "rgba(0,0,0,0)",
-            "font": {"size": 11},
+            "font": {"size": 10, "color": "#94A3B8"},
         },
         yaxis_title=yaxis_title,
-        height=336,
-        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 17}},
+        height=320,
+        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 16, "color": "#E2E8F0"}},
     )
-    fig.update_xaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", tickfont={"size": 11}, title_font={"size": 11})
-    fig.update_yaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", zerolinecolor="#3b4a66", tickfont={"size": 11}, title_font={"size": 11})
+    fig.update_xaxes(showgrid=True, gridcolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, zeroline=False)
+    fig.update_yaxes(showgrid=True, gridcolor="#1E293B", zerolinecolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, nticks=5)
     return fig
 
 
@@ -152,6 +152,7 @@ def _apply_short_axis_format(
     update_kwargs["tickmode"] = "array"
     update_kwargs["tickvals"] = tick_values
     update_kwargs["ticktext"] = tick_text
+    update_kwargs["nticks"] = 5
     fig.update_yaxes(**update_kwargs)
     return fig
 
@@ -169,7 +170,7 @@ def create_comparison_bar_chart(
     title: str,
     yaxis_title: str,
     tickformat: str | None = None,
-    color: str = "#38bdf8",
+    color: str = "#3B82F6",
     yaxis_range: list[float] | None = None,
 ) -> go.Figure:
     """
@@ -200,14 +201,14 @@ def create_comparison_bar_chart(
     _apply_dark_layout(fig, title, yaxis_title)
     fig.update_xaxes(type="category")
     if tickformat == "percent":
-        fig.update_yaxes(tickformat=".0%")
+        fig.update_yaxes(tickformat=".0%", nticks=5)
         if yaxis_range is not None:
             fig.update_yaxes(range=yaxis_range)
         return fig
     if tickformat == "score":
         return _apply_short_axis_format(fig, currency=False, fixed_range=yaxis_range)
     if tickformat == "multiple":
-        fig.update_yaxes(tickformat=".1f", ticksuffix="x")
+        fig.update_yaxes(tickformat=".1f", ticksuffix="x", nticks=5)
         if yaxis_range is not None:
             fig.update_yaxes(range=yaxis_range)
         return fig
@@ -247,7 +248,7 @@ def create_revenue_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 x=metrics["Period"],
                 y=revenue,
                 name="Revenue",
-                marker_color="#38bdf8",
+                marker_color="#3B82F6",
                 hovertemplate="Period %{x}<br>Revenue %{y:$,.2f}<extra></extra>",
             )
         )
@@ -265,10 +266,10 @@ def create_margin_chart(metrics_df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
 
     margin_config = [
-        ("ebitda_margin_pct", "EBITDA Margin", "#38bdf8"),
-        ("gross_margin_pct", "Gross Margin", "#22c55e"),
-        ("operating_margin_pct", "Operating Margin", "#f59e0b"),
-        ("net_income_margin_pct", "Net Income Margin", "#f43f5e"),
+        ("ebitda_margin_pct", "EBITDA Margin", "#3B82F6"),
+        ("gross_margin_pct", "Gross Margin", "#0F766E"),
+        ("operating_margin_pct", "Operating Margin", "#64748B"),
+        ("net_income_margin_pct", "Net Income Margin", "#DC2626"),
     ]
 
     for column, label, color in margin_config:
@@ -287,7 +288,7 @@ def create_margin_chart(metrics_df: pd.DataFrame) -> go.Figure:
 
     _apply_dark_layout(fig, "Profitability Margins", "Margin %")
     _configure_period_axis(fig, metrics)
-    fig.update_yaxes(tickformat=".0%")
+    fig.update_yaxes(tickformat=".0%", nticks=5)
     return fig
 
 
@@ -308,7 +309,7 @@ def create_income_fcf_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 x=metrics["Period"],
                 y=net_income,
                 name="Net Income",
-                marker_color="#8b5cf6",
+                marker_color="#64748B",
                 hovertemplate="Period %{x}<br>Net Income %{y:$,.2f}<extra></extra>",
             )
         )
@@ -320,7 +321,7 @@ def create_income_fcf_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 y=ebitda,
                 name="EBITDA",
                 mode="lines+markers",
-                line={"width": 3, "color": "#22c55e"},
+                line={"width": 3, "color": "#0F766E"},
                 hovertemplate="Period %{x}<br>EBITDA %{y:$,.2f}<extra></extra>",
             )
         )
@@ -332,7 +333,7 @@ def create_income_fcf_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 y=free_cash_flow,
                 name="Free Cash Flow",
                 mode="lines+markers",
-                line={"width": 3, "color": "#f59e0b"},
+                line={"width": 3, "color": "#D97706"},
                 hovertemplate="Period %{x}<br>Free Cash Flow %{y:$,.2f}<extra></extra>",
             )
         )
@@ -359,7 +360,7 @@ def create_cash_debt_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 x=metrics["Period"],
                 y=cash,
                 name="Cash & Equivalents",
-                marker_color="#22c55e",
+                marker_color="#0F766E",
                 hovertemplate="Period %{x}<br>Cash %{y:$,.2f}<extra></extra>",
             )
         )
@@ -370,7 +371,7 @@ def create_cash_debt_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 x=metrics["Period"],
                 y=debt,
                 name="Total Debt",
-                marker_color="#ef4444",
+                marker_color="#DC2626",
                 hovertemplate="Period %{x}<br>Debt %{y:$,.2f}<extra></extra>",
             )
         )
@@ -382,7 +383,7 @@ def create_cash_debt_chart(metrics_df: pd.DataFrame) -> go.Figure:
                 y=net_cash_debt,
                 name="Net Cash / Debt",
                 mode="lines+markers",
-                line={"width": 3, "color": "#38bdf8"},
+                line={"width": 3, "color": "#3B82F6"},
                 hovertemplate="Period %{x}<br>Net Cash / Debt %{y:$,.2f}<extra></extra>",
             )
         )
@@ -411,7 +412,7 @@ def create_stock_price_chart(
                 y=close_series,
                 mode="lines",
                 name=f"{ticker.upper()} Close",
-                line={"width": 2.5, "color": "#38bdf8"},
+                line={"width": 2.5, "color": "#3B82F6"},
                 hovertemplate="%{x|%Y-%m-%d}<br>Close %{y:$,.2f}<extra></extra>",
             )
         )
@@ -433,7 +434,7 @@ def create_multi_ticker_price_chart(
     title = "Stock Price Performance (Normalized)" if normalized else "Stock Price (Raw)"
     yaxis_title = "Normalized to 100" if normalized else "Price"
 
-    palette = ["#38bdf8", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6", "#eab308"]
+    palette = ["#3B82F6", "#0F766E", "#64748B", "#DC2626", "#D97706", "#475569", "#1D4ED8"]
     for index, (ticker, frame) in enumerate(price_history_map.items()):
         prices = _safe_price_frame(frame)
         close_series = _column_with_values(prices, "Close")

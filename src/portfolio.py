@@ -23,26 +23,26 @@ DEFAULT_PORTFOLIO = pd.DataFrame(
 def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.Figure:
     fig.update_layout(
         template="plotly_dark",
-        paper_bgcolor="#0b1220",
-        plot_bgcolor="#0f172a",
-        font={"family": "Arial, sans-serif", "color": "#dbe4f0"},
+        paper_bgcolor="#020617",
+        plot_bgcolor="#0B1220",
+        font={"family": "Arial, sans-serif", "color": "#E2E8F0"},
         hovermode="x unified",
-        margin={"l": 58, "r": 24, "t": 96, "b": 42},
+        margin={"l": 56, "r": 18, "t": 92, "b": 34},
         legend={
             "orientation": "h",
-            "yanchor": "top",
-            "y": 1.07,
+            "yanchor": "bottom",
+            "y": 1.02,
             "x": 0,
             "xanchor": "left",
             "bgcolor": "rgba(0,0,0,0)",
-            "font": {"size": 11},
+            "font": {"size": 10, "color": "#94A3B8"},
         },
         yaxis_title=yaxis_title,
-        height=340,
-        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 17}},
+        height=320,
+        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 16, "color": "#E2E8F0"}},
     )
-    fig.update_xaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", tickfont={"size": 11}, title_font={"size": 11})
-    fig.update_yaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", zerolinecolor="#3b4a66", tickfont={"size": 11}, title_font={"size": 11})
+    fig.update_xaxes(showgrid=True, gridcolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, zeroline=False)
+    fig.update_yaxes(showgrid=True, gridcolor="#1E293B", zerolinecolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, nticks=5)
     return fig
 
 
@@ -381,7 +381,7 @@ def create_portfolio_cumulative_chart(portfolio_equity: pd.Series) -> go.Figure:
                 y=portfolio_equity - 1.0,
                 mode="lines",
                 name="Portfolio",
-                line={"width": 3, "color": "#38bdf8"},
+                line={"width": 3, "color": "#3B82F6"},
             )
         )
     _apply_dark_layout(fig, "Portfolio Cumulative Return", "Return")
@@ -402,7 +402,7 @@ def create_portfolio_vs_benchmark_chart(
                 y=portfolio_equity - 1.0,
                 mode="lines",
                 name="Portfolio",
-                line={"width": 3, "color": "#38bdf8"},
+                line={"width": 3, "color": "#3B82F6"},
             )
         )
     if not benchmark_equity.empty:
@@ -412,7 +412,7 @@ def create_portfolio_vs_benchmark_chart(
                 y=benchmark_equity - 1.0,
                 mode="lines",
                 name=benchmark_ticker,
-                line={"width": 2.5, "color": "#22c55e"},
+                line={"width": 2.5, "color": "#0F766E"},
             )
         )
     _apply_dark_layout(fig, "Portfolio vs Benchmark Cumulative Return", "Return")
@@ -422,7 +422,7 @@ def create_portfolio_vs_benchmark_chart(
 
 def create_holdings_comparison_chart(holdings_normalized_df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
-    palette = ["#38bdf8", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6", "#eab308"]
+    palette = ["#3B82F6", "#0F766E", "#64748B", "#DC2626", "#D97706", "#475569", "#1D4ED8"]
     for index, column in enumerate(holdings_normalized_df.columns):
         fig.add_trace(
             go.Scatter(
@@ -444,12 +444,13 @@ def create_allocation_chart(weights_df: pd.DataFrame) -> go.Figure:
             go.Pie(
                 labels=weights_df["Ticker"],
                 values=weights_df["Weight %"],
-                hole=0.45,
+                hole=0.6,
                 textinfo="label+percent",
+                marker={"colors": ["#3B82F6", "#64748B", "#0F766E", "#475569", "#1E293B", "#10B981"]},
             )
         )
     _apply_dark_layout(fig, "Portfolio Allocation", "")
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, colorway=["#3B82F6", "#64748B", "#0F766E", "#475569", "#1E293B", "#10B981"])
     return fig
 
 
@@ -479,7 +480,7 @@ def create_drawdown_chart(drawdown_series: pd.Series) -> go.Figure:
                 y=drawdown_series,
                 mode="lines",
                 name="Drawdown",
-                line={"width": 2.5, "color": "#ef4444"},
+                line={"width": 2.5, "color": "#DC2626"},
                 fill="tozeroy",
             )
         )
@@ -501,7 +502,7 @@ def create_drawdown_comparison_chart(
                 y=portfolio_drawdown,
                 mode="lines",
                 name="Portfolio",
-                line={"width": 2.5, "color": "#ef4444"},
+                line={"width": 2.5, "color": "#DC2626"},
             )
         )
     if not benchmark_drawdown.empty:
@@ -511,7 +512,7 @@ def create_drawdown_comparison_chart(
                 y=benchmark_drawdown,
                 mode="lines",
                 name=f"{benchmark_ticker} Drawdown",
-                line={"width": 2.2, "color": "#f59e0b"},
+                line={"width": 2.2, "color": "#D97706"},
             )
         )
     _apply_dark_layout(fig, "Portfolio vs Benchmark Drawdown", "Drawdown")
