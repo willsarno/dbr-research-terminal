@@ -52,17 +52,52 @@ def _configure_page() -> None:
             color: #e2e8f0;
         }
         .block-container {
-            max-width: 1280px;
-            padding-top: 2rem;
+            max-width: 1320px;
+            padding-top: 1.35rem;
             padding-bottom: 3rem;
         }
+        section[data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #06101f 0%, #0a1322 100%);
+            border-right: 1px solid rgba(148, 163, 184, 0.10);
+        }
+        .dbr-sidebar-brand {
+            padding: 0.25rem 0 1rem 0;
+        }
+        .dbr-sidebar-kicker {
+            color: #7dd3fc;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.72rem;
+            margin-bottom: 0.35rem;
+        }
+        .dbr-sidebar-title {
+            color: #f8fafc;
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 0.3rem;
+        }
+        .dbr-sidebar-copy {
+            color: #94a3b8;
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+        .dbr-sidebar-note {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            margin-top: 1rem;
+        }
         .dbr-hero {
-            padding: 1.6rem 1.7rem;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 20px;
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(17, 24, 39, 0.90));
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
-            margin-bottom: 1.4rem;
+            padding: 1.9rem 2rem;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 28%),
+                linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.92));
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+            margin-bottom: 1.6rem;
         }
         .dbr-eyebrow {
             color: #38bdf8;
@@ -90,89 +125,146 @@ def _configure_page() -> None:
         }
         .dbr-mode-guide {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 0.85rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-top: 1.15rem;
         }
-        .dbr-mode-box {
-            background: rgba(2, 6, 23, 0.45);
+        .dbr-mode-box,
+        .dbr-action-card {
+            background: rgba(2, 6, 23, 0.42);
             border: 1px solid rgba(148, 163, 184, 0.12);
-            border-radius: 16px;
-            padding: 0.95rem 1rem;
+            border-radius: 18px;
+            padding: 1rem 1.05rem;
+            min-height: 155px;
         }
-        .dbr-mode-box strong {
+        .dbr-mode-box strong,
+        .dbr-action-card strong {
             display: block;
             color: #f8fafc;
             margin-bottom: 0.35rem;
+            font-size: 1.02rem;
+        }
+        .dbr-action-card p,
+        .dbr-mode-box p {
+            color: #cbd5e1;
+            margin: 0;
+            line-height: 1.55;
+        }
+        .dbr-tagline {
+            color: #cbd5e1;
+            margin-top: 0.9rem;
+            font-size: 0.98rem;
+            max-width: 820px;
         }
         .dbr-page-header {
-            margin-bottom: 1rem;
+            margin-bottom: 0.9rem;
         }
         .dbr-page-header h2 {
-            margin: 0 0 0.35rem 0;
+            margin: 0 0 0.28rem 0;
             color: #f8fafc;
+            font-size: 1.65rem;
         }
         .dbr-page-header p {
             margin: 0;
             color: #94a3b8;
+            max-width: 780px;
+            line-height: 1.55;
         }
         .dbr-settings-panel {
             background: rgba(15, 23, 42, 0.82);
             border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
-            padding: 1rem 1rem 0.85rem;
-            margin-bottom: 1rem;
+            border-radius: 20px;
+            padding: 1rem 1rem 0.9rem;
+            margin-bottom: 1.15rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
         }
         .dbr-settings-panel h3 {
-            margin: 0 0 0.8rem 0;
+            margin: 0 0 0.75rem 0;
             color: #f8fafc;
+            font-size: 1rem;
         }
         .dbr-card {
             background: rgba(15, 23, 42, 0.86);
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 18px;
-            padding: 0.95rem 0.95rem 0.8rem;
-            min-height: 108px;
+            padding: 1rem 1rem 0.9rem;
+            min-height: 116px;
+            position: relative;
+            overflow: hidden;
+        }
+        .dbr-card::before,
+        .dbr-flag::before,
+        .dbr-panel::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: rgba(148, 163, 184, 0.35);
+        }
+        .dbr-card[data-tone="positive"]::before,
+        .dbr-flag[data-tone="positive"]::before,
+        .dbr-panel[data-tone="positive"]::before {
+            background: rgba(34, 197, 94, 0.70);
+        }
+        .dbr-card[data-tone="negative"]::before,
+        .dbr-flag[data-tone="negative"]::before,
+        .dbr-panel[data-tone="negative"]::before {
+            background: rgba(239, 68, 68, 0.75);
+        }
+        .dbr-card[data-tone="neutral"]::before,
+        .dbr-flag[data-tone="neutral"]::before,
+        .dbr-panel[data-tone="neutral"]::before {
+            background: rgba(56, 189, 248, 0.65);
+        }
+        .dbr-card[data-tone="caution"]::before,
+        .dbr-flag[data-tone="caution"]::before,
+        .dbr-panel[data-tone="caution"]::before {
+            background: rgba(245, 158, 11, 0.75);
         }
         .dbr-row-gap {
-            margin-top: 0.5rem;
-            margin-bottom: 1.15rem;
+            margin-top: 0.45rem;
+            margin-bottom: 1.25rem;
         }
         .dbr-card-label {
-            color: #93c5fd;
-            font-size: 0.86rem;
+            color: #9fb4cf;
+            font-size: 0.77rem;
             margin-bottom: 0.4rem;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.09em;
         }
         .dbr-card-value {
             color: #f8fafc;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 700;
             line-height: 1.2;
         }
         .dbr-card-sub {
             color: #94a3b8;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin-top: 0.35rem;
+            line-height: 1.45;
         }
         .dbr-flag {
             background: rgba(15, 23, 42, 0.78);
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 14px;
-            padding: 0.75rem 0.9rem;
-            min-height: 82px;
+            padding: 0.8rem 0.95rem;
+            min-height: 88px;
+            position: relative;
+            overflow: hidden;
         }
         .dbr-flag-label {
-            color: #93c5fd;
-            font-size: 0.82rem;
+            color: #9fb4cf;
+            font-size: 0.74rem;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
             margin-bottom: 0.35rem;
         }
         .dbr-flag-value {
             color: #f8fafc;
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             font-weight: 700;
         }
         .dbr-flag-sub {
@@ -180,13 +272,42 @@ def _configure_page() -> None:
             font-size: 0.8rem;
             margin-top: 0.25rem;
         }
+        .dbr-panel {
+            background: rgba(15, 23, 42, 0.84);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 20px;
+            padding: 1rem 1.05rem;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .dbr-panel h3 {
+            margin: 0 0 0.85rem 0;
+            color: #f8fafc;
+        }
+        .dbr-section-title {
+            margin: 0 0 0.85rem 0;
+            color: #f8fafc;
+            font-size: 1.12rem;
+        }
         .dbr-snapshot {
             background: rgba(15, 23, 42, 0.82);
             border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 1rem 1.15rem;
             margin-top: 1rem;
             margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .dbr-snapshot::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: rgba(56, 189, 248, 0.65);
         }
         .dbr-snapshot h3 {
             margin-top: 0;
@@ -214,10 +335,10 @@ def _configure_page() -> None:
         .dbr-valuation-panel {
             background: rgba(15, 23, 42, 0.82);
             border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 1rem 1rem 0.7rem;
-            margin-top: 0.4rem;
-            margin-bottom: 0.8rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
         }
         .dbr-valuation-panel h3 {
             margin: 0 0 0.9rem 0;
@@ -226,23 +347,51 @@ def _configure_page() -> None:
         .dbr-compare-panel {
             background: rgba(15, 23, 42, 0.82);
             border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 1rem 1.1rem 1.1rem;
             margin-bottom: 1rem;
         }
+        .dbr-bestworst-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 0.9rem;
+        }
+        .dbr-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.8rem;
+        }
         .dbr-footer {
-            margin-top: 2rem;
+            margin-top: 2.25rem;
             padding-top: 1rem;
             border-top: 1px solid rgba(148, 163, 184, 0.12);
             color: #94a3b8;
-            font-size: 0.9rem;
+            font-size: 0.83rem;
+        }
+        div[data-testid="stMarkdownContainer"] p {
+            line-height: 1.55;
         }
         div[data-testid="stTextInput"] input {
             background-color: rgba(15, 23, 42, 0.92);
             color: #f8fafc;
             border-radius: 12px;
         }
+        div[data-testid="stSelectbox"] > div,
+        div[data-testid="stMultiSelect"] > div,
+        div[data-testid="stNumberInput"] input {
+            background-color: rgba(15, 23, 42, 0.92);
+            border-radius: 12px;
+        }
+        div[data-testid="stButton"] button {
+            border-radius: 12px;
+            min-height: 2.65rem;
+        }
         div[data-testid="stDataFrame"] {
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        div[data-testid="stDataEditor"] {
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 18px;
             overflow: hidden;
@@ -251,7 +400,7 @@ def _configure_page() -> None:
             margin-top: 0.85rem;
         }
         div[data-testid="stPlotlyChart"] {
-            margin-bottom: 1rem;
+            margin-bottom: 1.05rem;
         }
         div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stPlotlyChart"]) {
             padding-top: 0.25rem;
@@ -279,21 +428,22 @@ def _render_home_page() -> None:
             <div class="dbr-eyebrow">Rules-Based Equity Research</div>
             <h1 class="dbr-title">DBR Research Terminal</h1>
             <p class="dbr-subtitle">Interactive public-market research built on transparent rules, financial statements, valuation data, portfolio context, and market behavior.</p>
+            <div class="dbr-tagline">Rules-based investment research for equities, comps, and portfolio risk.</div>
             <div class="dbr-hero-copy">
                 Use the terminal to research one company in depth, compare multiple businesses side by side, or analyze a portfolio with risk and return diagnostics.
             </div>
             <div class="dbr-mode-guide">
-                <div class="dbr-mode-box">
-                    <strong>Single Company</strong>
-                    Analyze one ticker with statement trends, valuation, scoring, narrative, and chart-based context.
+                <div class="dbr-action-card">
+                    <strong>Analyze a Company</strong>
+                    <p>Research one public company with financial trends, valuation context, quality signals, and market behavior.</p>
                 </div>
-                <div class="dbr-mode-box">
+                <div class="dbr-action-card">
                     <strong>Compare Companies</strong>
-                    Rank multiple companies on growth, margins, balance sheet strength, valuation, and quality score.
+                    <p>Compare peers side by side on growth, profitability, valuation, balance sheet strength, and market performance.</p>
                 </div>
-                <div class="dbr-mode-box">
-                    <strong>Portfolio Analysis</strong>
-                    Test a custom portfolio using weighted returns, allocation, correlation, drawdown, and risk diagnostics.
+                <div class="dbr-action-card">
+                    <strong>Analyze a Portfolio</strong>
+                    <p>Stress test a custom portfolio with weighted returns, risk, correlations, benchmark context, and what-if scenarios.</p>
                 </div>
             </div>
         </div>
@@ -316,6 +466,32 @@ def _render_page_header(title: str, description: str) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def _render_sidebar() -> str:
+    """
+    Render the branded sidebar navigation and return the selected page.
+    """
+    with st.sidebar:
+        st.markdown(
+            """
+            <div class="dbr-sidebar-brand">
+                <div class="dbr-sidebar-kicker">DBR</div>
+                <div class="dbr-sidebar-title">Research Terminal</div>
+                <div class="dbr-sidebar-copy">Rules-based workflows for company research, peer comps, and portfolio risk.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        page = st.radio(
+            "Navigation",
+            ["Home", "Company Research", "Peer Comparison", "Portfolio Lab"],
+        )
+        st.markdown(
+            '<div class="dbr-sidebar-note">Data from Yahoo Finance/yfinance. Not investment advice.</div>',
+            unsafe_allow_html=True,
+        )
+    return page
 
 
 def _open_settings_panel(title: str = "Analysis Settings") -> None:
@@ -450,12 +626,23 @@ def _display_company_header(ticker: str, company_info_df: pd.DataFrame, metrics_
     market_cap = _format_market_cap(info_row.get("market_cap") if hasattr(info_row, "get") else None)
     fiscal_year = latest_year(metrics_df)
 
+    profile_items = [
+        ("Ticker", ticker.upper()),
+        ("Sector", sector or "N/A"),
+        ("Market Cap", market_cap),
+        ("Latest Fiscal Year", str(fiscal_year)),
+    ]
+    info_html = "".join(
+        f'<div class="dbr-card" data-tone="neutral"><div class="dbr-card-label">{label}</div><div class="dbr-card-value" style="font-size:1.05rem;">{value}</div></div>'
+        for label, value in profile_items
+    )
     st.markdown(
         f"""
-        <div class="dbr-hero">
-            <div class="dbr-eyebrow">DBR Research Terminal</div>
-            <h1 class="dbr-title">{company_name} ({ticker.upper()})</h1>
-            <p class="dbr-subtitle">Sector: {sector} | Market Cap: {market_cap} | Latest Fiscal Year: {fiscal_year}</p>
+        <div class="dbr-panel" data-tone="neutral">
+            <div class="dbr-eyebrow">Company Profile</div>
+            <h2 style="margin:0;color:#f8fafc;">{company_name} ({ticker.upper()})</h2>
+            <p class="dbr-subtitle" style="margin-top:0.35rem;">Latest company profile, market context, and reported financial snapshot.</p>
+            <div class="dbr-info-grid" style="margin-top:1rem;">{info_html}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -485,11 +672,11 @@ def _parse_ticker_list(raw_input: str) -> list[str]:
     return tickers
 
 
-def _render_kpi_card(column: Any, label: str, value: str, sublabel: str) -> None:
+def _render_kpi_card(column: Any, label: str, value: str, sublabel: str, tone: str = "neutral") -> None:
     with column:
         st.markdown(
             f"""
-            <div class="dbr-card">
+            <div class="dbr-card" data-tone="{tone}">
                 <div class="dbr-card-label">{label}</div>
                 <div class="dbr-card-value">{value}</div>
                 <div class="dbr-card-sub">{sublabel}</div>
@@ -499,11 +686,11 @@ def _render_kpi_card(column: Any, label: str, value: str, sublabel: str) -> None
         )
 
 
-def _render_flag_card(column: Any, label: str, value: str, sublabel: str) -> None:
+def _render_flag_card(column: Any, label: str, value: str, sublabel: str, tone: str = "neutral") -> None:
     with column:
         st.markdown(
             f"""
-            <div class="dbr-flag">
+            <div class="dbr-flag" data-tone="{tone}">
                 <div class="dbr-flag-label">{label}</div>
                 <div class="dbr-flag-value">{value}</div>
                 <div class="dbr-flag-sub">{sublabel}</div>
@@ -511,6 +698,19 @@ def _render_flag_card(column: Any, label: str, value: str, sublabel: str) -> Non
             """,
             unsafe_allow_html=True,
         )
+
+
+def _tone_from_numeric(value: Any, invert: bool = False) -> str:
+    """
+    Map a numeric value into a subtle card tone.
+    """
+    numeric_value = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric_value):
+        return "neutral"
+    is_positive = float(numeric_value) >= 0
+    if invert:
+        is_positive = not is_positive
+    return "positive" if is_positive else "negative"
 
 
 def _metric_series(metrics_df: pd.DataFrame, column: str) -> pd.Series:
@@ -580,54 +780,62 @@ def _display_kpis(metrics_df: pd.DataFrame) -> None:
             "Revenue",
             format_money(latest_metric_value(metrics_df, "revenue")),
             _signed_percent_text(_delta_percent(*_latest_and_prior(metrics_df, "revenue"))),
+            _tone_from_numeric(latest_metric_value(metrics_df, "revenue")),
         ),
         (
             "Revenue Growth",
             format_percent(latest_metric_value(metrics_df, "revenue_growth_pct")),
             _trend_text(metrics_df, "revenue_growth_pct", "Growth improving", "Growth slowing"),
+            _tone_from_numeric(latest_metric_value(metrics_df, "revenue_growth_pct")),
         ),
         (
             "EBITDA",
             format_money(latest_metric_value(metrics_df, "ebitda")),
             _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "ebitda"))),
+            _tone_from_numeric(latest_metric_value(metrics_df, "ebitda")),
         ),
         (
             "EBITDA Margin",
             format_percent(latest_metric_value(metrics_df, "ebitda_margin_pct")),
             _trend_text(metrics_df, "ebitda_margin_pct", "Margin improving", "Margin compressing"),
+            _tone_from_numeric(latest_metric_value(metrics_df, "ebitda_margin_pct")),
         ),
         (
             "Net Income",
             format_money(latest_metric_value(metrics_df, "net_income")),
             _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "net_income"))),
+            _tone_from_numeric(latest_metric_value(metrics_df, "net_income")),
         ),
         (
             "Free Cash Flow",
             format_money(latest_metric_value(metrics_df, "free_cash_flow")),
             _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "free_cash_flow"))),
+            _tone_from_numeric(latest_metric_value(metrics_df, "free_cash_flow")),
         ),
         (
             "Cash",
             format_money(latest_metric_value(metrics_df, "cash_and_equivalents")),
             _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "cash_and_equivalents"))),
+            "positive",
         ),
         (
             "Debt",
             format_money(latest_metric_value(metrics_df, "total_debt")),
             _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "total_debt"))),
+            "caution" if pd.notna(pd.to_numeric(latest_metric_value(metrics_df, "total_debt"), errors="coerce")) else "neutral",
         ),
     ]
 
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     first_row = st.columns(4)
-    for column, (label, value, sublabel) in zip(first_row, kpi_values[:4]):
-        _render_kpi_card(column, label, value, sublabel)
+    for column, (label, value, sublabel, tone) in zip(first_row, kpi_values[:4]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     second_row = st.columns(4)
-    for column, (label, value, sublabel) in zip(second_row, kpi_values[4:]):
-        _render_kpi_card(column, label, value, sublabel)
+    for column, (label, value, sublabel, tone) in zip(second_row, kpi_values[4:]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -654,18 +862,18 @@ def _quality_flags(metrics_df: pd.DataFrame) -> list[tuple[str, str, str]]:
         balance_flag = "Net Cash" if net_cash_debt >= 0 else "Net Debt"
 
     return [
-        ("Revenue Growth", revenue_growth_flag, format_percent(revenue_growth)),
-        ("Profitability", profitability_flag, format_money(net_income)),
-        ("Free Cash Flow", fcf_flag, format_money(free_cash_flow)),
-        ("Balance Sheet", balance_flag, format_money(net_cash_debt)),
+        ("Revenue Growth", revenue_growth_flag, format_percent(revenue_growth), "positive" if revenue_growth_flag == "Strong" else "negative" if revenue_growth_flag == "Weak" else "neutral"),
+        ("Profitability", profitability_flag, format_money(net_income), "positive" if profitability_flag == "Positive" else "negative" if profitability_flag == "Negative" else "neutral"),
+        ("Free Cash Flow", fcf_flag, format_money(free_cash_flow), "positive" if fcf_flag == "Positive" else "negative" if fcf_flag == "Negative" else "neutral"),
+        ("Balance Sheet", balance_flag, format_money(net_cash_debt), "positive" if balance_flag == "Net Cash" else "caution" if balance_flag == "Net Debt" else "neutral"),
     ]
 
 
 def _display_quality_flags(metrics_df: pd.DataFrame) -> None:
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     flag_columns = st.columns(4)
-    for column, (label, value, sublabel) in zip(flag_columns, _quality_flags(metrics_df)):
-        _render_flag_card(column, label, value, sublabel)
+    for column, (label, value, sublabel, tone) in zip(flag_columns, _quality_flags(metrics_df)):
+        _render_flag_card(column, label, value, sublabel, tone=tone)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -771,24 +979,25 @@ def _display_valuation_section(company_info_df: pd.DataFrame) -> None:
         ),
     ]
 
-    st.markdown('<div class="dbr-valuation-panel"><h3>Valuation</h3></div>', unsafe_allow_html=True)
+    st.markdown('<div class="dbr-valuation-panel"><h3>Valuation</h3>', unsafe_allow_html=True)
 
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     top_row = st.columns(3)
     for column, (label, value) in zip(top_row, valuation_cards[:3]):
-        _render_kpi_card(column, label, value, "Latest available")
+        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     middle_row = st.columns(3)
     for column, (label, value) in zip(middle_row, valuation_cards[3:6]):
-        _render_kpi_card(column, label, value, "Latest available")
+        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     bottom_row = st.columns(3)
     for column, (label, value) in zip(bottom_row, valuation_cards[6:]):
-        _render_kpi_card(column, label, value, "Latest available")
+        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -822,7 +1031,7 @@ def _display_business_quality_score(metrics_df: pd.DataFrame, company_info_df: p
     with score_col:
         st.markdown(
             f"""
-            <div class="dbr-card" style="border-color: {accent_color}; background: linear-gradient(135deg, {accent_bg}, rgba(15, 23, 42, 0.92));">
+            <div class="dbr-card" data-tone="neutral" style="border-color: {accent_color}; background: linear-gradient(135deg, {accent_bg}, rgba(15, 23, 42, 0.92));">
                 <div class="dbr-card-label">Business Quality Score</div>
                 <div class="dbr-card-value" style="color: {accent_color};">{score}/100</div>
                 <div class="dbr-card-sub" style="color: {accent_color};">{label}</div>
@@ -840,17 +1049,19 @@ def _display_business_quality_score(metrics_df: pd.DataFrame, company_info_df: p
 
     strength_col, risk_col = st.columns(2)
     with strength_col:
-        st.markdown("#### Strengths")
+        st.markdown('<div class="dbr-panel" data-tone="positive"><h3>Strengths</h3>', unsafe_allow_html=True)
         for item in strengths:
             st.write(f"- {item}")
+        st.markdown("</div>", unsafe_allow_html=True)
     with risk_col:
-        st.markdown("#### Risks")
+        st.markdown('<div class="dbr-panel" data-tone="caution"><h3>Risks</h3>', unsafe_allow_html=True)
         for item in risks:
             st.write(f"- {item}")
         st.markdown(
             f'<div class="dbr-muted-note">{metrics_df.attrs.get("ebitda_note", "EBITDA is often unavailable or less meaningful for banks, lenders, insurers, and other financial companies.")}</div>',
             unsafe_allow_html=True,
         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_narrative_tab(metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
@@ -999,35 +1210,48 @@ def _display_best_worst_section(comparison_df: pd.DataFrame) -> None:
     """
     Render a simple best/worst ranking section for comparison mode.
     """
-    st.markdown("## Best / Worst")
-    left_col, right_col = st.columns(2)
-    with left_col:
-        st.write(f"- Best growth: {_best_row_by_numeric(comparison_df, 'Revenue Growth')}")
-        st.write(f"- Best profitability: {_best_row_by_numeric(comparison_df, 'Net Income Margin')}")
-        st.write(f"- Best balance sheet: {_best_row_by_numeric(comparison_df, 'Net Cash / Debt')}")
-    with right_col:
-        st.write(f"- Cheapest valuation by P/S: {_best_row_by_numeric(comparison_df, 'P/S', ascending=True)}")
-        st.write(f"- Highest score: {_best_row_by_numeric(comparison_df, 'Business Quality Score')}")
-        st.write(f"- Most expensive by P/S: {_best_row_by_numeric(comparison_df, 'P/S')}")
+    st.markdown('<h3 class="dbr-section-title">Best / Worst</h3>', unsafe_allow_html=True)
+    cards = [
+        ("Best Growth", _best_row_by_numeric(comparison_df, "Revenue Growth"), "Highest revenue growth", "positive"),
+        ("Best Profitability", _best_row_by_numeric(comparison_df, "Net Income Margin"), "Highest net income margin", "positive"),
+        ("Best Balance Sheet", _best_row_by_numeric(comparison_df, "Net Cash / Debt"), "Strongest net cash position", "positive"),
+        ("Cheapest P/S", _best_row_by_numeric(comparison_df, "P/S", ascending=True), "Lowest price-to-sales", "neutral"),
+        ("Highest Score", _best_row_by_numeric(comparison_df, "Business Quality Score"), "Best quality score", "positive"),
+        ("Most Expensive P/S", _best_row_by_numeric(comparison_df, "P/S"), "Highest price-to-sales", "caution"),
+    ]
+    top_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(top_row, cards[:3]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    bottom_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(bottom_row, cards[3:]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
 
 
 def _display_comparison_summary(comparison_df: pd.DataFrame) -> None:
     """
     Render a simple comparison summary section.
     """
-    st.markdown("## Comparison Summary")
-    st.write(f"- Highest revenue growth: {_best_row_by_numeric(comparison_df, 'Revenue Growth')}")
-    st.write(f"- Highest net income margin: {_best_row_by_numeric(comparison_df, 'Net Income Margin')}")
-    st.write(f"- Strongest balance sheet: {_best_row_by_numeric(comparison_df, 'Net Cash / Debt')}")
-    st.write(f"- Lowest P/S: {_best_row_by_numeric(comparison_df, 'P/S', ascending=True)}")
-    st.write(f"- Highest business quality score: {_best_row_by_numeric(comparison_df, 'Business Quality Score')}")
+    st.markdown('<h3 class="dbr-section-title">Comparison Summary</h3>', unsafe_allow_html=True)
+    cards = [
+        ("Highest Revenue Growth", _best_row_by_numeric(comparison_df, "Revenue Growth"), "Top-line momentum leader", "positive"),
+        ("Highest Net Income Margin", _best_row_by_numeric(comparison_df, "Net Income Margin"), "Best profitability", "positive"),
+        ("Strongest Balance Sheet", _best_row_by_numeric(comparison_df, "Net Cash / Debt"), "Net cash leadership", "positive"),
+        ("Lowest P/S", _best_row_by_numeric(comparison_df, "P/S", ascending=True), "Lowest sales multiple", "neutral"),
+        ("Highest Quality Score", _best_row_by_numeric(comparison_df, "Business Quality Score"), "Rules-based quality leader", "positive"),
+    ]
+    top_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(top_row, cards[:3]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    bottom_row = st.columns(2)
+    for column, (label, value, sublabel, tone) in zip(bottom_row, cards[3:]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
 
 
 def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
     """
     Render comparison-mode charts below the summary.
     """
-    st.markdown("## Comparison Charts")
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Comparison Charts</h3>', unsafe_allow_html=True)
     chart_specs = [
         ("Revenue Growth", "Revenue Growth by Ticker", "Revenue Growth", "percent", "#38bdf8", None),
         ("Net Income Margin", "Net Income Margin by Ticker", "Net Income Margin", "percent", "#22c55e", None),
@@ -1061,6 +1285,7 @@ def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
                 yaxis_range=second_spec[5],
             )
             st.plotly_chart(fig, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_comparison_price_charts(
@@ -1070,7 +1295,7 @@ def _display_comparison_price_charts(
     """
     Render multi-ticker comparison price charts.
     """
-    st.markdown("## Price Comparison")
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Price Comparison</h3>', unsafe_allow_html=True)
     normalized_fig = create_multi_ticker_price_chart(
         price_history_map,
         price_period=price_timeframe,
@@ -1084,6 +1309,7 @@ def _display_comparison_price_charts(
         normalized=False,
     )
     st.plotly_chart(raw_fig, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _run_comparison_analysis(
@@ -1123,11 +1349,11 @@ def _run_comparison_analysis(
         return
 
     comparison_df = pd.DataFrame(comparison_rows)
-    st.markdown('<div class="dbr-compare-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="dbr-compare-panel" data-tone="neutral">', unsafe_allow_html=True)
     _display_comparison_summary(comparison_df)
     st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
-    st.markdown('<div class="dbr-compare-panel">', unsafe_allow_html=True)
+    st.markdown('<div class="dbr-compare-panel" data-tone="neutral">', unsafe_allow_html=True)
     _display_best_worst_section(comparison_df)
     st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
@@ -1135,8 +1361,9 @@ def _run_comparison_analysis(
     _section_spacer(0.35)
     _display_comparison_charts(comparison_df)
     _section_spacer(0.35)
-    st.markdown("## Comparison Table")
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Comparison Table</h3>', unsafe_allow_html=True)
     st.dataframe(_format_comparison_table(comparison_df), use_container_width=True, hide_index=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     if failed_tickers:
         st.warning(f"Some tickers could not be loaded: {', '.join(failed_tickers)}")
@@ -1147,15 +1374,18 @@ def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
     Render portfolio summary KPI cards.
     """
     metric_cards = [
-        ("Cumulative Return", format_percent(metrics.get("cumulative_return")), "Portfolio total return"),
-        ("Annualized Return", format_percent(metrics.get("annualized_return")), "Annualized"),
-        ("Annualized Volatility", format_percent(metrics.get("annualized_volatility")), "Risk"),
-        ("Sharpe Ratio", _format_plain_number(metrics.get("sharpe_ratio")), "Risk-free rate = 0"),
-        ("Max Drawdown", format_percent(metrics.get("max_drawdown")), "Worst peak-to-trough"),
+        ("Cumulative Return", format_percent(metrics.get("cumulative_return")), "Portfolio total return", _tone_from_numeric(metrics.get("cumulative_return"))),
+        ("Annualized Return", format_percent(metrics.get("annualized_return")), "Annualized", _tone_from_numeric(metrics.get("annualized_return"))),
+        ("Annualized Volatility", format_percent(metrics.get("annualized_volatility")), "Risk", "caution"),
+        ("Sharpe Ratio", _format_plain_number(metrics.get("sharpe_ratio")), "Risk-free rate = 0", _tone_from_numeric(metrics.get("sharpe_ratio"))),
+        ("Max Drawdown", format_percent(metrics.get("max_drawdown")), "Worst peak-to-trough", _tone_from_numeric(metrics.get("max_drawdown"), invert=True)),
     ]
-    columns = st.columns(5)
-    for column, (label, value, sublabel) in zip(columns, metric_cards):
-        _render_kpi_card(column, label, value, sublabel)
+    top_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(top_row, metric_cards[:3]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    bottom_row = st.columns(2)
+    for column, (label, value, sublabel, tone) in zip(bottom_row, metric_cards[3:]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
 
 
 def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
@@ -1165,16 +1395,19 @@ def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
     benchmark_metrics = analysis.get("benchmark_metrics", {})
     benchmark_ticker = analysis.get("benchmark_ticker", "Benchmark")
     benchmark_cards = [
-        ("Portfolio Return", format_percent(analysis.get("metrics", {}).get("cumulative_return")), "Total return"),
-        (f"{benchmark_ticker} Return", format_percent(benchmark_metrics.get("cumulative_return")), "Benchmark total return"),
-        ("Excess Return", format_percent(benchmark_metrics.get("excess_return")), "Portfolio minus benchmark"),
-        ("Beta", _format_plain_number(benchmark_metrics.get("beta")), "Sensitivity vs benchmark"),
-        ("Correlation", _format_plain_number(benchmark_metrics.get("correlation")), "Daily return correlation"),
-        ("Max Drawdown Diff", format_percent(benchmark_metrics.get("max_drawdown_difference")), "Portfolio minus benchmark"),
+        ("Portfolio Return", format_percent(analysis.get("metrics", {}).get("cumulative_return")), "Total return", _tone_from_numeric(analysis.get("metrics", {}).get("cumulative_return"))),
+        (f"{benchmark_ticker} Return", format_percent(benchmark_metrics.get("cumulative_return")), "Benchmark total return", "neutral"),
+        ("Excess Return", format_percent(benchmark_metrics.get("excess_return")), "Portfolio minus benchmark", _tone_from_numeric(benchmark_metrics.get("excess_return"))),
+        ("Beta", _format_plain_number(benchmark_metrics.get("beta")), "Sensitivity vs benchmark", "neutral"),
+        ("Correlation", _format_plain_number(benchmark_metrics.get("correlation")), "Daily return correlation", "neutral"),
+        ("Max Drawdown Diff", format_percent(benchmark_metrics.get("max_drawdown_difference")), "Portfolio minus benchmark", _tone_from_numeric(benchmark_metrics.get("max_drawdown_difference"), invert=True)),
     ]
-    columns = st.columns(6)
-    for column, (label, value, sublabel) in zip(columns, benchmark_cards):
-        _render_kpi_card(column, label, value, sublabel)
+    top_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(top_row, benchmark_cards[:3]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    bottom_row = st.columns(3)
+    for column, (label, value, sublabel, tone) in zip(bottom_row, benchmark_cards[3:]):
+        _render_kpi_card(column, label, value, sublabel, tone=tone)
 
     tracking_error = benchmark_metrics.get("tracking_error")
     if pd.notna(pd.to_numeric(tracking_error, errors="coerce")):
@@ -1229,8 +1462,8 @@ def _run_portfolio_analysis() -> None:
     Execute portfolio analysis mode.
     """
     _render_page_header(
-        "Portfolio Analysis",
-        "Analyze a custom basket of holdings using price-based portfolio return, risk, allocation, and drawdown diagnostics.",
+        "Portfolio Lab",
+        "Analyze a custom basket of holdings with benchmark context, drawdown diagnostics, and scenario testing.",
     )
     if "portfolio_holdings_df" not in st.session_state:
         st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
@@ -1251,6 +1484,7 @@ def _run_portfolio_analysis() -> None:
         ).strip().upper()
     benchmark_ticker = benchmark_custom if benchmark_choice == "Custom" and benchmark_custom else benchmark_choice
 
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Holdings Editor</h3>', unsafe_allow_html=True)
     st.caption("Add, edit, or delete holdings. Use CASH for cash allocation.")
     holdings_input = st.data_editor(
         st.session_state["portfolio_holdings_df"],
@@ -1277,6 +1511,7 @@ def _run_portfolio_analysis() -> None:
         run_clicked = st.button("Run Portfolio Analysis", type="primary", use_container_width=True)
     with reset_col:
         reset_clicked = st.button("Reset Portfolio", use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
     _close_settings_panel()
 
     if reset_clicked:
@@ -1322,18 +1557,26 @@ def _run_portfolio_analysis() -> None:
         return
 
     _section_spacer(0.25)
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Portfolio Scorecard</h3>', unsafe_allow_html=True)
     _display_portfolio_metrics(analysis.get("metrics", {}))
+    st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
 
-    for warning in analysis.get("warnings", []):
-        st.warning(warning)
+    if analysis.get("warnings", []):
+        st.markdown('<div class="dbr-panel" data-tone="caution"><h3>Risk Notes</h3>', unsafe_allow_html=True)
+        for warning in analysis.get("warnings", []):
+            st.warning(warning)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     if analysis.get("benchmark_available"):
+        st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Benchmark Comparison</h3>', unsafe_allow_html=True)
         _display_benchmark_summary(analysis)
+        st.markdown("</div>", unsafe_allow_html=True)
         _section_spacer(0.35)
     else:
         st.info("Benchmark data was unavailable for the selected benchmark ticker.")
 
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Portfolio Charts</h3>', unsafe_allow_html=True)
     left_col, right_col = st.columns(2)
     with left_col:
         st.plotly_chart(
@@ -1375,9 +1618,10 @@ def _run_portfolio_analysis() -> None:
             create_correlation_heatmap(analysis.get("correlation_df", pd.DataFrame())),
             use_container_width=True,
         )
+    st.markdown("</div>", unsafe_allow_html=True)
 
     _section_spacer(0.55)
-    st.markdown("## What-If Analysis")
+    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>What-If Analysis</h3>', unsafe_allow_html=True)
     st.caption("Build a proposed portfolio scenario and compare it with the latest current portfolio run.")
     st.markdown('<div class="dbr-settings-panel">', unsafe_allow_html=True)
     st.caption("Add, edit, or delete proposed holdings. Use CASH for cash allocation.")
@@ -1467,6 +1711,7 @@ def _run_portfolio_analysis() -> None:
     if what_if_result is not None:
         _section_spacer(0.25)
         _display_what_if_results(what_if_result)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
@@ -1478,7 +1723,7 @@ def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_in
         return
 
     overview_tab, profitability_tab, cash_tab, stock_tab, quality_tab, narrative_tab, metrics_tab = st.tabs(
-        ["Overview", "Profitability", "Cash Flow & Balance Sheet", "Stock Price", "Quality & Valuation", "Narrative", "Metrics Table"]
+        ["Overview", "Profitability", "Cash Flow & Balance Sheet", "Stock Price", "Quality & Valuation", "Narrative", "Metrics"]
     )
 
     with overview_tab:
@@ -1726,17 +1971,14 @@ def main() -> None:
     Streamlit entrypoint for the DBR Research Terminal UI.
     """
     _configure_page()
-    page = st.sidebar.radio(
-        "Navigation",
-        ["Home", "Single Company", "Compare Companies", "Portfolio Analysis"],
-    )
+    page = _render_sidebar()
 
     if page == "Home":
         _render_home_page()
-    elif page == "Single Company":
+    elif page == "Company Research":
         _render_page_header(
-            "Single Company Analysis",
-            "Analyze one ticker using financial statements, valuation, quality scoring, narrative context, and price behavior.",
+            "Company Research",
+            "Analyze one ticker using reported financials, valuation, quality signals, rules-based narrative, and market behavior.",
         )
 
         _section_spacer(0.25)
@@ -1755,9 +1997,11 @@ def main() -> None:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
         with count_col:
             display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
+        action_col = st.columns([1, 4])[0]
+        with action_col:
+            run_clicked = st.button("Run Analysis", type="primary", use_container_width=True)
         _close_settings_panel()
 
-        run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
         if run_clicked:
             try:
                 if not ticker:
@@ -1774,10 +2018,10 @@ def main() -> None:
         else:
             st.info("Enter a ticker symbol and click Run Analysis.")
 
-    elif page == "Compare Companies":
+    elif page == "Peer Comparison":
         _render_page_header(
-            "Compare Companies",
-            "Compare multiple tickers on growth, profitability, valuation, balance sheet strength, and market performance.",
+            "Peer Comparison",
+            "Compare multiple public companies on growth, profitability, valuation, balance sheet strength, and stock performance.",
         )
 
         _section_spacer(0.25)
@@ -1793,9 +2037,11 @@ def main() -> None:
             financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
         with timeframe_col:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+        action_col = st.columns([1, 4])[0]
+        with action_col:
+            run_clicked = st.button("Run Comparison", type="primary", use_container_width=True)
         _close_settings_panel()
 
-        run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
         if run_clicked:
             try:
                 tickers = _parse_ticker_list(comparison_input)
@@ -1810,9 +2056,9 @@ def main() -> None:
             except Exception as exc:
                 st.error(f"Comparison analysis failed: {exc}")
         else:
-            st.info("Enter one or more tickers and click Run Analysis.")
+            st.info("Enter one or more tickers and click Run Comparison.")
 
-    elif page == "Portfolio Analysis":
+    elif page == "Portfolio Lab":
         _section_spacer(0.25)
         _run_portfolio_analysis()
 

@@ -24,17 +24,25 @@ def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="#0b1220",
-        plot_bgcolor="#0b1220",
-        font={"family": "Arial, sans-serif"},
+        plot_bgcolor="#0f172a",
+        font={"family": "Arial, sans-serif", "color": "#dbe4f0"},
         hovermode="x unified",
-        margin={"l": 55, "r": 20, "t": 88, "b": 38},
-        legend={"orientation": "h", "yanchor": "top", "y": 1.0, "x": 0, "xanchor": "left"},
+        margin={"l": 58, "r": 24, "t": 96, "b": 42},
+        legend={
+            "orientation": "h",
+            "yanchor": "top",
+            "y": 1.07,
+            "x": 0,
+            "xanchor": "left",
+            "bgcolor": "rgba(0,0,0,0)",
+            "font": {"size": 11},
+        },
         yaxis_title=yaxis_title,
-        height=360,
-        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.97, "yanchor": "top"},
+        height=340,
+        title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 17}},
     )
-    fig.update_xaxes(showgrid=True, gridcolor="#22304a")
-    fig.update_yaxes(showgrid=True, gridcolor="#22304a", zerolinecolor="#3b4a66")
+    fig.update_xaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", tickfont={"size": 11}, title_font={"size": 11})
+    fig.update_yaxes(showgrid=True, gridcolor="rgba(148, 163, 184, 0.14)", zerolinecolor="#3b4a66", tickfont={"size": 11}, title_font={"size": 11})
     return fig
 
 
