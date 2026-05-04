@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from html import escape
 from typing import Any
 
 import pandas as pd
@@ -174,7 +175,7 @@ def _configure_page() -> None:
             background: rgba(15, 23, 42, 0.82);
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 20px;
-            padding: 1rem 1rem 0.9rem;
+            padding: 0.85rem 0.95rem;
             margin-bottom: 1.15rem;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
         }
@@ -183,12 +184,18 @@ def _configure_page() -> None:
             color: #f8fafc;
             font-size: 1rem;
         }
+        .dbr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 16px 0 24px 0;
+        }
         .dbr-card {
             background: rgba(15, 23, 42, 0.86);
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 18px;
-            padding: 1rem 1rem 0.9rem;
-            min-height: 116px;
+            padding: 14px 16px;
+            min-height: auto;
             position: relative;
             overflow: hidden;
         }
@@ -223,14 +230,10 @@ def _configure_page() -> None:
         .dbr-panel[data-tone="caution"]::before {
             background: rgba(245, 158, 11, 0.75);
         }
-        .dbr-row-gap {
-            margin-top: 0.45rem;
-            margin-bottom: 1.25rem;
-        }
         .dbr-card-label {
             color: #9fb4cf;
             font-size: 0.77rem;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.32rem;
             text-transform: uppercase;
             letter-spacing: 0.09em;
         }
@@ -243,7 +246,7 @@ def _configure_page() -> None:
         .dbr-card-sub {
             color: #94a3b8;
             font-size: 0.82rem;
-            margin-top: 0.35rem;
+            margin-top: 0.28rem;
             line-height: 1.45;
         }
         .dbr-flag {
@@ -276,14 +279,20 @@ def _configure_page() -> None:
             background: rgba(15, 23, 42, 0.84);
             border: 1px solid rgba(148, 163, 184, 0.14);
             border-radius: 20px;
-            padding: 1rem 1.05rem;
-            margin-bottom: 1rem;
+            padding: 0.75rem 0.9rem;
+            margin-bottom: 0.85rem;
             position: relative;
             overflow: hidden;
         }
         .dbr-panel h3 {
-            margin: 0 0 0.85rem 0;
+            margin: 0 0 0.55rem 0;
             color: #f8fafc;
+        }
+        .dbr-panel-copy {
+            color: #94a3b8;
+            font-size: 0.88rem;
+            line-height: 1.45;
+            margin: 0;
         }
         .dbr-section-title {
             margin: 0 0 0.85rem 0;
@@ -468,6 +477,17 @@ def _render_page_header(title: str, description: str) -> None:
     )
 
 
+def _render_panel_header(title: str, tone: str = "neutral", copy: str | None = None) -> None:
+    """
+    Render a compact standalone section header without wrapping later widgets in raw HTML.
+    """
+    copy_html = f'<p class="dbr-panel-copy">{escape(copy)}</p>' if copy else ""
+    st.markdown(
+        f'<div class="dbr-panel" data-tone="{escape(tone)}"><h3>{escape(title)}</h3>{copy_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def _render_sidebar() -> str:
     """
     Render the branded sidebar navigation and return the selected page.
@@ -496,16 +516,16 @@ def _render_sidebar() -> str:
 
 def _open_settings_panel(title: str = "Analysis Settings") -> None:
     """
-    Open a styled settings panel.
+    Render a compact settings header card.
     """
-    st.markdown(f'<div class="dbr-settings-panel"><h3>{title}</h3>', unsafe_allow_html=True)
+    st.markdown(f'<div class="dbr-settings-panel"><h3>{escape(title)}</h3></div>', unsafe_allow_html=True)
 
 
 def _close_settings_panel() -> None:
     """
-    Close a styled settings panel.
+    Retained for compatibility with existing call sites.
     """
-    st.markdown("</div>", unsafe_allow_html=True)
+    return None
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -633,7 +653,7 @@ def _display_company_header(ticker: str, company_info_df: pd.DataFrame, metrics_
         ("Latest Fiscal Year", str(fiscal_year)),
     ]
     info_html = "".join(
-        f'<div class="dbr-card" data-tone="neutral"><div class="dbr-card-label">{label}</div><div class="dbr-card-value" style="font-size:1.05rem;">{value}</div></div>'
+        f'<div class="dbr-card" data-tone="neutral"><div class="dbr-card-label">{escape(str(label))}</div><div class="dbr-card-value" style="font-size:1.05rem;">{escape(str(value))}</div></div>'
         for label, value in profile_items
     )
     st.markdown(
@@ -672,28 +692,34 @@ def _parse_ticker_list(raw_input: str) -> list[str]:
     return tickers
 
 
-def _render_kpi_card(column: Any, label: str, value: str, sublabel: str, tone: str = "neutral") -> None:
-    with column:
-        st.markdown(
-            f"""
-            <div class="dbr-card" data-tone="{tone}">
-                <div class="dbr-card-label">{label}</div>
-                <div class="dbr-card-value">{value}</div>
-                <div class="dbr-card-sub">{sublabel}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+def _render_metric_card_grid(cards: list[tuple[str, str, str, str]]) -> None:
+    """
+    Render static metric cards in a consistent responsive CSS grid.
+    """
+    html_parts = ['<div class="dbr-grid">']
+    for label, value, sublabel, tone in cards:
+        html_parts.append(
+            (
+                f'<div class="dbr-card" data-tone="{escape(tone)}">'
+                f'<div class="dbr-card-label">{escape(str(label))}</div>'
+                f'<div class="dbr-card-value">{escape(str(value))}</div>'
+                f'<div class="dbr-card-sub">{escape(str(sublabel))}</div>'
+                "</div>"
+            )
         )
+    html_parts.append("</div>")
+    full_grid_html = "".join(html_parts)
+    st.markdown(full_grid_html, unsafe_allow_html=True)
 
 
 def _render_flag_card(column: Any, label: str, value: str, sublabel: str, tone: str = "neutral") -> None:
     with column:
         st.markdown(
             f"""
-            <div class="dbr-flag" data-tone="{tone}">
-                <div class="dbr-flag-label">{label}</div>
-                <div class="dbr-flag-value">{value}</div>
-                <div class="dbr-flag-sub">{sublabel}</div>
+            <div class="dbr-flag" data-tone="{escape(tone)}">
+                <div class="dbr-flag-label">{escape(str(label))}</div>
+                <div class="dbr-flag-value">{escape(str(value))}</div>
+                <div class="dbr-flag-sub">{escape(str(sublabel))}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -826,17 +852,7 @@ def _display_kpis(metrics_df: pd.DataFrame) -> None:
         ),
     ]
 
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
-    first_row = st.columns(4)
-    for column, (label, value, sublabel, tone) in zip(first_row, kpi_values[:4]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
-    second_row = st.columns(4)
-    for column, (label, value, sublabel, tone) in zip(second_row, kpi_values[4:]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    st.markdown("</div>", unsafe_allow_html=True)
+    _render_metric_card_grid(kpi_values)
 
 
 def _quality_flags(metrics_df: pd.DataFrame) -> list[tuple[str, str, str]]:
@@ -870,11 +886,9 @@ def _quality_flags(metrics_df: pd.DataFrame) -> list[tuple[str, str, str]]:
 
 
 def _display_quality_flags(metrics_df: pd.DataFrame) -> None:
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
     flag_columns = st.columns(4)
     for column, (label, value, sublabel, tone) in zip(flag_columns, _quality_flags(metrics_df)):
         _render_flag_card(column, label, value, sublabel, tone=tone)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: bool) -> list[str]:
@@ -979,26 +993,8 @@ def _display_valuation_section(company_info_df: pd.DataFrame) -> None:
         ),
     ]
 
-    st.markdown('<div class="dbr-valuation-panel"><h3>Valuation</h3>', unsafe_allow_html=True)
-
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
-    top_row = st.columns(3)
-    for column, (label, value) in zip(top_row, valuation_cards[:3]):
-        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
-    middle_row = st.columns(3)
-    for column, (label, value) in zip(middle_row, valuation_cards[3:6]):
-        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
-    bottom_row = st.columns(3)
-    for column, (label, value) in zip(bottom_row, valuation_cards[6:]):
-        _render_kpi_card(column, label, value, "Latest available", tone="neutral")
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    _render_panel_header("Valuation")
+    _render_metric_card_grid([(label, value, "Latest available", "neutral") for label, value in valuation_cards])
 
 
 def _score_band_colors(label: str) -> tuple[str, str]:
@@ -1040,8 +1036,8 @@ def _display_business_quality_score(metrics_df: pd.DataFrame, company_info_df: p
             unsafe_allow_html=True,
         )
     with summary_col:
-        st.write(f"**Overall:** {score}/100 ({label})")
-        st.write(explanation)
+        st.markdown(f"**Overall:** {score}/100 ({label})")
+        st.markdown(explanation)
         st.markdown(
             '<div class="dbr-score-note">This score is a rules-based research aid, not a buy/sell recommendation.</div>',
             unsafe_allow_html=True,
@@ -1049,19 +1045,17 @@ def _display_business_quality_score(metrics_df: pd.DataFrame, company_info_df: p
 
     strength_col, risk_col = st.columns(2)
     with strength_col:
-        st.markdown('<div class="dbr-panel" data-tone="positive"><h3>Strengths</h3>', unsafe_allow_html=True)
+        _render_panel_header("Strengths", tone="positive")
         for item in strengths:
             st.write(f"- {item}")
-        st.markdown("</div>", unsafe_allow_html=True)
     with risk_col:
-        st.markdown('<div class="dbr-panel" data-tone="caution"><h3>Risks</h3>', unsafe_allow_html=True)
+        _render_panel_header("Risks", tone="caution")
         for item in risks:
             st.write(f"- {item}")
         st.markdown(
             f'<div class="dbr-muted-note">{metrics_df.attrs.get("ebitda_note", "EBITDA is often unavailable or less meaningful for banks, lenders, insurers, and other financial companies.")}</div>',
             unsafe_allow_html=True,
         )
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_narrative_tab(metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
@@ -1210,7 +1204,6 @@ def _display_best_worst_section(comparison_df: pd.DataFrame) -> None:
     """
     Render a simple best/worst ranking section for comparison mode.
     """
-    st.markdown('<h3 class="dbr-section-title">Best / Worst</h3>', unsafe_allow_html=True)
     cards = [
         ("Best Growth", _best_row_by_numeric(comparison_df, "Revenue Growth"), "Highest revenue growth", "positive"),
         ("Best Profitability", _best_row_by_numeric(comparison_df, "Net Income Margin"), "Highest net income margin", "positive"),
@@ -1219,19 +1212,13 @@ def _display_best_worst_section(comparison_df: pd.DataFrame) -> None:
         ("Highest Score", _best_row_by_numeric(comparison_df, "Business Quality Score"), "Best quality score", "positive"),
         ("Most Expensive P/S", _best_row_by_numeric(comparison_df, "P/S"), "Highest price-to-sales", "caution"),
     ]
-    top_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(top_row, cards[:3]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    bottom_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(bottom_row, cards[3:]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    _render_metric_card_grid(cards)
 
 
 def _display_comparison_summary(comparison_df: pd.DataFrame) -> None:
     """
     Render a simple comparison summary section.
     """
-    st.markdown('<h3 class="dbr-section-title">Comparison Summary</h3>', unsafe_allow_html=True)
     cards = [
         ("Highest Revenue Growth", _best_row_by_numeric(comparison_df, "Revenue Growth"), "Top-line momentum leader", "positive"),
         ("Highest Net Income Margin", _best_row_by_numeric(comparison_df, "Net Income Margin"), "Best profitability", "positive"),
@@ -1239,19 +1226,14 @@ def _display_comparison_summary(comparison_df: pd.DataFrame) -> None:
         ("Lowest P/S", _best_row_by_numeric(comparison_df, "P/S", ascending=True), "Lowest sales multiple", "neutral"),
         ("Highest Quality Score", _best_row_by_numeric(comparison_df, "Business Quality Score"), "Rules-based quality leader", "positive"),
     ]
-    top_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(top_row, cards[:3]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    bottom_row = st.columns(2)
-    for column, (label, value, sublabel, tone) in zip(bottom_row, cards[3:]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    _render_metric_card_grid(cards)
 
 
 def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
     """
     Render comparison-mode charts below the summary.
     """
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Comparison Charts</h3>', unsafe_allow_html=True)
+    _render_panel_header("Comparison Charts")
     chart_specs = [
         ("Revenue Growth", "Revenue Growth by Ticker", "Revenue Growth", "percent", "#38bdf8", None),
         ("Net Income Margin", "Net Income Margin by Ticker", "Net Income Margin", "percent", "#22c55e", None),
@@ -1285,7 +1267,6 @@ def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
                 yaxis_range=second_spec[5],
             )
             st.plotly_chart(fig, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_comparison_price_charts(
@@ -1295,7 +1276,7 @@ def _display_comparison_price_charts(
     """
     Render multi-ticker comparison price charts.
     """
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Price Comparison</h3>', unsafe_allow_html=True)
+    _render_panel_header("Price Comparison")
     normalized_fig = create_multi_ticker_price_chart(
         price_history_map,
         price_period=price_timeframe,
@@ -1309,7 +1290,6 @@ def _display_comparison_price_charts(
         normalized=False,
     )
     st.plotly_chart(raw_fig, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _run_comparison_analysis(
@@ -1349,21 +1329,18 @@ def _run_comparison_analysis(
         return
 
     comparison_df = pd.DataFrame(comparison_rows)
-    st.markdown('<div class="dbr-compare-panel" data-tone="neutral">', unsafe_allow_html=True)
+    _render_panel_header("Comparison Summary")
     _display_comparison_summary(comparison_df)
-    st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
-    st.markdown('<div class="dbr-compare-panel" data-tone="neutral">', unsafe_allow_html=True)
+    _render_panel_header("Best / Worst")
     _display_best_worst_section(comparison_df)
-    st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
     _display_comparison_price_charts(price_history_map, price_timeframe)
     _section_spacer(0.35)
     _display_comparison_charts(comparison_df)
     _section_spacer(0.35)
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Comparison Table</h3>', unsafe_allow_html=True)
+    _render_panel_header("Comparison Table")
     st.dataframe(_format_comparison_table(comparison_df), use_container_width=True, hide_index=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
     if failed_tickers:
         st.warning(f"Some tickers could not be loaded: {', '.join(failed_tickers)}")
@@ -1380,12 +1357,7 @@ def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
         ("Sharpe Ratio", _format_plain_number(metrics.get("sharpe_ratio")), "Risk-free rate = 0", _tone_from_numeric(metrics.get("sharpe_ratio"))),
         ("Max Drawdown", format_percent(metrics.get("max_drawdown")), "Worst peak-to-trough", _tone_from_numeric(metrics.get("max_drawdown"), invert=True)),
     ]
-    top_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(top_row, metric_cards[:3]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    bottom_row = st.columns(2)
-    for column, (label, value, sublabel, tone) in zip(bottom_row, metric_cards[3:]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    _render_metric_card_grid(metric_cards)
 
 
 def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
@@ -1402,12 +1374,7 @@ def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
         ("Correlation", _format_plain_number(benchmark_metrics.get("correlation")), "Daily return correlation", "neutral"),
         ("Max Drawdown Diff", format_percent(benchmark_metrics.get("max_drawdown_difference")), "Portfolio minus benchmark", _tone_from_numeric(benchmark_metrics.get("max_drawdown_difference"), invert=True)),
     ]
-    top_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(top_row, benchmark_cards[:3]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
-    bottom_row = st.columns(3)
-    for column, (label, value, sublabel, tone) in zip(bottom_row, benchmark_cards[3:]):
-        _render_kpi_card(column, label, value, sublabel, tone=tone)
+    _render_metric_card_grid(benchmark_cards)
 
     tracking_error = benchmark_metrics.get("tracking_error")
     if pd.notna(pd.to_numeric(tracking_error, errors="coerce")):
@@ -1465,10 +1432,14 @@ def _run_portfolio_analysis() -> None:
         "Portfolio Lab",
         "Analyze a custom basket of holdings with benchmark context, drawdown diagnostics, and scenario testing.",
     )
-    if "portfolio_holdings_df" not in st.session_state:
-        st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
-    if "proposed_portfolio_holdings_df" not in st.session_state:
-        st.session_state["proposed_portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
+    if "portfolio_holdings_seed" not in st.session_state:
+        st.session_state["portfolio_holdings_seed"] = DEFAULT_PORTFOLIO.copy()
+    if "portfolio_editor_version" not in st.session_state:
+        st.session_state["portfolio_editor_version"] = 0
+    if "proposed_portfolio_seed" not in st.session_state:
+        st.session_state["proposed_portfolio_seed"] = DEFAULT_PORTFOLIO.copy()
+    if "proposed_portfolio_editor_version" not in st.session_state:
+        st.session_state["proposed_portfolio_editor_version"] = 0
 
     _open_settings_panel("Analysis Settings")
     timeframe_col, benchmark_col, custom_col = st.columns([1.1, 1.0, 1.1])
@@ -1484,10 +1455,10 @@ def _run_portfolio_analysis() -> None:
         ).strip().upper()
     benchmark_ticker = benchmark_custom if benchmark_choice == "Custom" and benchmark_custom else benchmark_choice
 
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Holdings Editor</h3>', unsafe_allow_html=True)
-    st.caption("Add, edit, or delete holdings. Use CASH for cash allocation.")
+    _render_panel_header("Holdings Editor", copy="Add, edit, or delete holdings. Use CASH for cash allocation.")
+    portfolio_editor_key = f"portfolio_holdings_editor_{st.session_state['portfolio_editor_version']}"
     holdings_input = st.data_editor(
-        st.session_state["portfolio_holdings_df"],
+        st.session_state["portfolio_holdings_seed"],
         use_container_width=True,
         num_rows="dynamic",
         hide_index=True,
@@ -1495,9 +1466,9 @@ def _run_portfolio_analysis() -> None:
             "Ticker": st.column_config.TextColumn("Ticker"),
             "Weight %": st.column_config.NumberColumn("Weight %", format="%.2f"),
         },
-        key="portfolio_holdings_editor",
+        key=portfolio_editor_key,
     )
-    st.session_state["portfolio_holdings_df"] = holdings_input.copy()
+    st.session_state["portfolio_holdings_seed"] = holdings_input.copy()
     normalize_weights = st.checkbox("Normalize weights to 100%")
 
     holdings_df, holding_warnings = clean_holdings(holdings_input, normalize_weights=normalize_weights)
@@ -1511,12 +1482,11 @@ def _run_portfolio_analysis() -> None:
         run_clicked = st.button("Run Portfolio Analysis", type="primary", use_container_width=True)
     with reset_col:
         reset_clicked = st.button("Reset Portfolio", use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
     _close_settings_panel()
 
     if reset_clicked:
-        st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
-        st.session_state["portfolio_holdings_editor"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["portfolio_holdings_seed"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["portfolio_editor_version"] += 1
         st.session_state.pop("portfolio_analysis_result", None)
         st.session_state.pop("portfolio_what_if_result", None)
         st.session_state.pop("portfolio_what_if_analysis", None)
@@ -1557,26 +1527,32 @@ def _run_portfolio_analysis() -> None:
         return
 
     _section_spacer(0.25)
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Portfolio Scorecard</h3>', unsafe_allow_html=True)
+    _render_panel_header("Portfolio Scorecard")
     _display_portfolio_metrics(analysis.get("metrics", {}))
-    st.markdown("</div>", unsafe_allow_html=True)
     _section_spacer(0.35)
 
     if analysis.get("warnings", []):
-        st.markdown('<div class="dbr-panel" data-tone="caution"><h3>Risk Notes</h3>', unsafe_allow_html=True)
-        for warning in analysis.get("warnings", []):
-            st.warning(warning)
-        st.markdown("</div>", unsafe_allow_html=True)
+        warning_html = "".join(f"<li>{escape(str(message))}</li>" for message in analysis.get("warnings", []))
+        st.markdown(
+            f"""
+            <div class="dbr-panel" data-tone="caution">
+                <h3>Risk Notes</h3>
+                <ul style="margin:0;padding-left:1.15rem;color:#dbe4f0;">
+                    {warning_html}
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     if analysis.get("benchmark_available"):
-        st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Benchmark Comparison</h3>', unsafe_allow_html=True)
+        _render_panel_header("Benchmark Comparison")
         _display_benchmark_summary(analysis)
-        st.markdown("</div>", unsafe_allow_html=True)
         _section_spacer(0.35)
     else:
         st.info("Benchmark data was unavailable for the selected benchmark ticker.")
 
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>Portfolio Charts</h3>', unsafe_allow_html=True)
+    _render_panel_header("Portfolio Charts")
     left_col, right_col = st.columns(2)
     with left_col:
         st.plotly_chart(
@@ -1618,15 +1594,16 @@ def _run_portfolio_analysis() -> None:
             create_correlation_heatmap(analysis.get("correlation_df", pd.DataFrame())),
             use_container_width=True,
         )
-    st.markdown("</div>", unsafe_allow_html=True)
 
     _section_spacer(0.55)
-    st.markdown('<div class="dbr-panel" data-tone="neutral"><h3>What-If Analysis</h3>', unsafe_allow_html=True)
-    st.caption("Build a proposed portfolio scenario and compare it with the latest current portfolio run.")
-    st.markdown('<div class="dbr-settings-panel">', unsafe_allow_html=True)
-    st.caption("Add, edit, or delete proposed holdings. Use CASH for cash allocation.")
+    _render_panel_header(
+        "What-If Analysis",
+        copy="Build a proposed portfolio scenario and compare it with the latest current portfolio run.",
+    )
+    _render_panel_header("Proposed Holdings", copy="Add, edit, or delete proposed holdings. Use CASH for cash allocation.")
+    proposed_editor_key = f"proposed_portfolio_editor_{st.session_state['proposed_portfolio_editor_version']}"
     proposed_input = st.data_editor(
-        st.session_state["proposed_portfolio_holdings_df"],
+        st.session_state["proposed_portfolio_seed"],
         use_container_width=True,
         num_rows="dynamic",
         hide_index=True,
@@ -1634,9 +1611,9 @@ def _run_portfolio_analysis() -> None:
             "Ticker": st.column_config.TextColumn("Ticker"),
             "Weight %": st.column_config.NumberColumn("Weight %", format="%.2f"),
         },
-        key="proposed_portfolio_holdings_editor",
+        key=proposed_editor_key,
     )
-    st.session_state["proposed_portfolio_holdings_df"] = proposed_input.copy()
+    st.session_state["proposed_portfolio_seed"] = proposed_input.copy()
     normalize_proposed_weights = st.checkbox("Normalize proposed weights to 100%")
     proposed_holdings_df, proposed_warnings = clean_holdings(
         proposed_input,
@@ -1661,11 +1638,10 @@ def _run_portfolio_analysis() -> None:
         run_what_if_clicked = st.button("Run What-If", type="primary", use_container_width=True)
     with proposed_reset_col:
         reset_proposed_clicked = st.button("Reset Proposed Portfolio", use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
     if reset_proposed_clicked:
-        st.session_state["proposed_portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
-        st.session_state["proposed_portfolio_holdings_editor"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["proposed_portfolio_seed"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["proposed_portfolio_editor_version"] += 1
         st.session_state.pop("portfolio_what_if_result", None)
         st.rerun()
 
@@ -1711,7 +1687,6 @@ def _run_portfolio_analysis() -> None:
     if what_if_result is not None:
         _section_spacer(0.25)
         _display_what_if_results(what_if_result)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
