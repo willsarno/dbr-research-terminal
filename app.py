@@ -18,11 +18,14 @@ from src.portfolio import (
     DEFAULT_PORTFOLIO,
     analyze_portfolio,
     clean_holdings,
+    compare_portfolio_scenarios,
     create_allocation_chart,
     create_correlation_heatmap,
+    create_drawdown_comparison_chart,
     create_drawdown_chart,
     create_holdings_comparison_chart,
     create_portfolio_cumulative_chart,
+    create_portfolio_vs_benchmark_chart,
 )
 from src.report_builder import format_money, format_percent, latest_metric_value, latest_year, safe_string
 
@@ -1155,6 +1158,72 @@ def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
         _render_kpi_card(column, label, value, sublabel)
 
 
+def _display_benchmark_summary(analysis: dict[str, Any]) -> None:
+    """
+    Render benchmark-relative KPI cards for the active portfolio run.
+    """
+    benchmark_metrics = analysis.get("benchmark_metrics", {})
+    benchmark_ticker = analysis.get("benchmark_ticker", "Benchmark")
+    benchmark_cards = [
+        ("Portfolio Return", format_percent(analysis.get("metrics", {}).get("cumulative_return")), "Total return"),
+        (f"{benchmark_ticker} Return", format_percent(benchmark_metrics.get("cumulative_return")), "Benchmark total return"),
+        ("Excess Return", format_percent(benchmark_metrics.get("excess_return")), "Portfolio minus benchmark"),
+        ("Beta", _format_plain_number(benchmark_metrics.get("beta")), "Sensitivity vs benchmark"),
+        ("Correlation", _format_plain_number(benchmark_metrics.get("correlation")), "Daily return correlation"),
+        ("Max Drawdown Diff", format_percent(benchmark_metrics.get("max_drawdown_difference")), "Portfolio minus benchmark"),
+    ]
+    columns = st.columns(6)
+    for column, (label, value, sublabel) in zip(columns, benchmark_cards):
+        _render_kpi_card(column, label, value, sublabel)
+
+    tracking_error = benchmark_metrics.get("tracking_error")
+    if pd.notna(pd.to_numeric(tracking_error, errors="coerce")):
+        st.caption(f"Tracking error: {format_percent(tracking_error)}")
+
+
+def _display_what_if_results(what_if_result: dict[str, Any]) -> None:
+    """
+    Render the current vs proposed portfolio comparison and summary.
+    """
+    st.markdown("## What-If Summary")
+    for line in what_if_result.get("summary", []):
+        st.markdown(f"- {line}")
+
+    comparison_rows = [
+        {
+            "Metric": "Cumulative Return",
+            "Current": format_percent(what_if_result.get("current_metrics", {}).get("cumulative_return")),
+            "Proposed": format_percent(what_if_result.get("proposed_metrics", {}).get("cumulative_return")),
+        },
+        {
+            "Metric": "Annualized Volatility",
+            "Current": format_percent(what_if_result.get("current_metrics", {}).get("annualized_volatility")),
+            "Proposed": format_percent(what_if_result.get("proposed_metrics", {}).get("annualized_volatility")),
+        },
+        {
+            "Metric": "Sharpe Ratio",
+            "Current": _format_plain_number(what_if_result.get("current_metrics", {}).get("sharpe_ratio")),
+            "Proposed": _format_plain_number(what_if_result.get("proposed_metrics", {}).get("sharpe_ratio")),
+        },
+        {
+            "Metric": "Max Drawdown",
+            "Current": format_percent(what_if_result.get("current_metrics", {}).get("max_drawdown")),
+            "Proposed": format_percent(what_if_result.get("proposed_metrics", {}).get("max_drawdown")),
+        },
+        {
+            "Metric": "Largest Holding",
+            "Current": format_percent(what_if_result.get("current_largest_holding", 0.0) / 100.0),
+            "Proposed": format_percent(what_if_result.get("proposed_largest_holding", 0.0) / 100.0),
+        },
+        {
+            "Metric": "Cash Allocation",
+            "Current": format_percent(what_if_result.get("current_cash_allocation", 0.0) / 100.0),
+            "Proposed": format_percent(what_if_result.get("proposed_cash_allocation", 0.0) / 100.0),
+        },
+    ]
+    st.dataframe(pd.DataFrame(comparison_rows), use_container_width=True, hide_index=True)
+
+
 def _run_portfolio_analysis() -> None:
     """
     Execute portfolio analysis mode.
@@ -1165,11 +1234,23 @@ def _run_portfolio_analysis() -> None:
     )
     if "portfolio_holdings_df" not in st.session_state:
         st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
+    if "proposed_portfolio_holdings_df" not in st.session_state:
+        st.session_state["proposed_portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
 
     _open_settings_panel("Analysis Settings")
-    timeframe_col = st.columns([1.2])[0]
+    timeframe_col, benchmark_col, custom_col = st.columns([1.1, 1.0, 1.1])
     with timeframe_col:
         price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+    with benchmark_col:
+        benchmark_choice = st.selectbox("Benchmark", ["SPY", "QQQ", "DIA", "IWM", "Custom"], index=0)
+    with custom_col:
+        benchmark_custom = st.text_input(
+            "Custom Benchmark",
+            value="SPY" if benchmark_choice == "Custom" else benchmark_choice,
+            help="Enter a public market ETF or ticker if you want a custom benchmark.",
+        ).strip().upper()
+    benchmark_ticker = benchmark_custom if benchmark_choice == "Custom" and benchmark_custom else benchmark_choice
+
     st.caption("Add, edit, or delete holdings. Use CASH for cash allocation.")
     holdings_input = st.data_editor(
         st.session_state["portfolio_holdings_df"],
@@ -1202,6 +1283,8 @@ def _run_portfolio_analysis() -> None:
         st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
         st.session_state["portfolio_holdings_editor"] = DEFAULT_PORTFOLIO.copy()
         st.session_state.pop("portfolio_analysis_result", None)
+        st.session_state.pop("portfolio_what_if_result", None)
+        st.session_state.pop("portfolio_what_if_analysis", None)
         st.rerun()
 
     if holdings_df.empty:
@@ -1222,9 +1305,16 @@ def _run_portfolio_analysis() -> None:
                 if ticker == "CASH":
                     continue
                 price_history_map[ticker] = _cached_price_history(ticker, price_timeframe)
-            analysis = analyze_portfolio(holdings_df, price_history_map)
+            analysis = analyze_portfolio(
+                holdings_df,
+                price_history_map,
+                benchmark_history=_cached_price_history(benchmark_ticker, price_timeframe),
+                benchmark_ticker=benchmark_ticker,
+            )
         st.session_state["portfolio_analysis_result"] = analysis
         st.session_state["portfolio_analysis_holdings"] = holdings_df.copy()
+        st.session_state["portfolio_analysis_timeframe"] = price_timeframe
+        st.session_state["portfolio_analysis_benchmark"] = benchmark_ticker
 
     analysis = st.session_state.get("portfolio_analysis_result")
     if analysis is None:
@@ -1238,12 +1328,27 @@ def _run_portfolio_analysis() -> None:
     for warning in analysis.get("warnings", []):
         st.warning(warning)
 
+    if analysis.get("benchmark_available"):
+        _display_benchmark_summary(analysis)
+        _section_spacer(0.35)
+    else:
+        st.info("Benchmark data was unavailable for the selected benchmark ticker.")
+
     left_col, right_col = st.columns(2)
     with left_col:
         st.plotly_chart(
             create_portfolio_cumulative_chart(analysis.get("portfolio_equity", pd.Series(dtype="float64"))),
             use_container_width=True,
         )
+        if analysis.get("benchmark_available"):
+            st.plotly_chart(
+                create_portfolio_vs_benchmark_chart(
+                    analysis.get("portfolio_equity", pd.Series(dtype="float64")),
+                    analysis.get("benchmark_equity", pd.Series(dtype="float64")),
+                    analysis.get("benchmark_ticker", benchmark_ticker),
+                ),
+                use_container_width=True,
+            )
         st.plotly_chart(
             create_allocation_chart(analysis.get("weights_df", holdings_df)),
             use_container_width=True,
@@ -1252,6 +1357,15 @@ def _run_portfolio_analysis() -> None:
             create_drawdown_chart(analysis.get("portfolio_drawdown", pd.Series(dtype="float64"))),
             use_container_width=True,
         )
+        if analysis.get("benchmark_available"):
+            st.plotly_chart(
+                create_drawdown_comparison_chart(
+                    analysis.get("portfolio_drawdown", pd.Series(dtype="float64")),
+                    analysis.get("benchmark_drawdown", pd.Series(dtype="float64")),
+                    analysis.get("benchmark_ticker", benchmark_ticker),
+                ),
+                use_container_width=True,
+            )
     with right_col:
         st.plotly_chart(
             create_holdings_comparison_chart(analysis.get("holdings_normalized_df", pd.DataFrame())),
@@ -1261,6 +1375,98 @@ def _run_portfolio_analysis() -> None:
             create_correlation_heatmap(analysis.get("correlation_df", pd.DataFrame())),
             use_container_width=True,
         )
+
+    _section_spacer(0.55)
+    st.markdown("## What-If Analysis")
+    st.caption("Build a proposed portfolio scenario and compare it with the latest current portfolio run.")
+    st.markdown('<div class="dbr-settings-panel">', unsafe_allow_html=True)
+    st.caption("Add, edit, or delete proposed holdings. Use CASH for cash allocation.")
+    proposed_input = st.data_editor(
+        st.session_state["proposed_portfolio_holdings_df"],
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config={
+            "Ticker": st.column_config.TextColumn("Ticker"),
+            "Weight %": st.column_config.NumberColumn("Weight %", format="%.2f"),
+        },
+        key="proposed_portfolio_holdings_editor",
+    )
+    st.session_state["proposed_portfolio_holdings_df"] = proposed_input.copy()
+    normalize_proposed_weights = st.checkbox("Normalize proposed weights to 100%")
+    proposed_holdings_df, proposed_warnings = clean_holdings(
+        proposed_input,
+        normalize_weights=normalize_proposed_weights,
+    )
+    proposed_total_weight = (
+        float(
+            pd.to_numeric(
+                proposed_holdings_df.get("Weight %", pd.Series(dtype=float)),
+                errors="coerce",
+            ).fillna(0.0).sum()
+        )
+        if not proposed_holdings_df.empty
+        else 0.0
+    )
+    st.write(f"**Proposed Total Weight:** {proposed_total_weight:.1f}%")
+    for warning in proposed_warnings:
+        st.warning(warning)
+
+    what_if_col, proposed_reset_col = st.columns(2)
+    with what_if_col:
+        run_what_if_clicked = st.button("Run What-If", type="primary", use_container_width=True)
+    with proposed_reset_col:
+        reset_proposed_clicked = st.button("Reset Proposed Portfolio", use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if reset_proposed_clicked:
+        st.session_state["proposed_portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["proposed_portfolio_holdings_editor"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state.pop("portfolio_what_if_result", None)
+        st.rerun()
+
+    if run_what_if_clicked:
+        if proposed_holdings_df.empty:
+            st.warning("Add at least one proposed holding to run what-if analysis.")
+        elif abs(proposed_total_weight - 100.0) > 0.01 and not normalize_proposed_weights:
+            st.warning("Proposed portfolio weights must equal 100% unless normalization is enabled.")
+        else:
+            with st.spinner("Running what-if analysis..."):
+                proposed_price_history_map: dict[str, pd.DataFrame] = {}
+                all_tickers = sorted(
+                    {
+                        ticker
+                        for ticker in pd.concat(
+                            [holdings_df["Ticker"], proposed_holdings_df["Ticker"]],
+                            ignore_index=True,
+                        ).tolist()
+                        if ticker != "CASH"
+                    }
+                )
+                for ticker in all_tickers:
+                    proposed_price_history_map[ticker] = _cached_price_history(ticker, price_timeframe)
+
+                proposed_analysis = analyze_portfolio(
+                    proposed_holdings_df,
+                    proposed_price_history_map,
+                    benchmark_history=_cached_price_history(benchmark_ticker, price_timeframe),
+                    benchmark_ticker=benchmark_ticker,
+                )
+                what_if_result = compare_portfolio_scenarios(
+                    analysis,
+                    proposed_analysis,
+                    st.session_state.get("portfolio_analysis_holdings", holdings_df),
+                    proposed_holdings_df,
+                )
+
+            st.session_state["portfolio_what_if_result"] = what_if_result
+            st.session_state["portfolio_what_if_analysis"] = proposed_analysis
+            st.session_state["portfolio_what_if_holdings"] = proposed_holdings_df.copy()
+
+    what_if_result = st.session_state.get("portfolio_what_if_result")
+    if what_if_result is not None:
+        _section_spacer(0.25)
+        _display_what_if_results(what_if_result)
 
 
 def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:

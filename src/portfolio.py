@@ -66,12 +66,55 @@ def clean_holdings(holdings_df: pd.DataFrame, normalize_weights: bool = False) -
     return cleaned, warnings
 
 
+def _extract_price_series(history: pd.DataFrame) -> pd.Series:
+    """
+    Build a clean price series from yfinance-style history data.
+    """
+    if not isinstance(history, pd.DataFrame) or history.empty:
+        return pd.Series(dtype="float64")
+
+    column = "Adj Close" if "Adj Close" in history.columns and history["Adj Close"].notna().any() else "Close"
+    if column not in history.columns or "Date" not in history.columns:
+        return pd.Series(dtype="float64")
+
+    price_series = pd.to_numeric(history[column], errors="coerce")
+    date_series = pd.to_datetime(history["Date"], errors="coerce")
+    series = pd.Series(price_series.values, index=date_series).dropna().sort_index()
+    return series[~series.index.duplicated(keep="last")]
+
+
+def _calculate_drawdown(equity_curve: pd.Series) -> pd.Series:
+    """
+    Convert an equity curve into a peak-to-trough drawdown series.
+    """
+    if equity_curve.empty:
+        return pd.Series(dtype="float64")
+
+    rolling_max = equity_curve.cummax()
+    return equity_curve / rolling_max - 1.0
+
+
+def _annualized_return_from_equity(equity_curve: pd.Series, observations: int) -> float:
+    """
+    Convert a cumulative equity curve into an annualized return.
+    """
+    if equity_curve.empty or observations <= 0:
+        return 0.0
+
+    ending_value = float(equity_curve.iloc[-1])
+    if ending_value <= 0:
+        return 0.0
+    return ending_value ** (252 / observations) - 1.0
+
+
 def analyze_portfolio(
     holdings_df: pd.DataFrame,
     price_history_map: dict[str, pd.DataFrame],
+    benchmark_history: pd.DataFrame | None = None,
+    benchmark_ticker: str = "SPY",
 ) -> dict[str, Any]:
     """
-    Analyze a portfolio from holdings and price histories.
+    Analyze a portfolio from holdings, price histories, and an optional benchmark.
     """
     holdings = holdings_df.copy()
     holdings["Weight %"] = pd.to_numeric(holdings["Weight %"], errors="coerce").fillna(0.0)
@@ -85,16 +128,7 @@ def analyze_portfolio(
         if ticker == "CASH":
             continue
         history = price_history_map.get(ticker, pd.DataFrame())
-        if not isinstance(history, pd.DataFrame) or history.empty:
-            continue
-
-        column = "Adj Close" if "Adj Close" in history.columns and history["Adj Close"].notna().any() else "Close"
-        if column not in history.columns or "Date" not in history.columns:
-            continue
-
-        price_series = pd.to_numeric(history[column], errors="coerce")
-        date_series = pd.to_datetime(history["Date"], errors="coerce")
-        series = pd.Series(price_series.values, index=date_series).dropna().sort_index()
+        series = _extract_price_series(history)
         if series.empty:
             continue
 
@@ -133,11 +167,10 @@ def analyze_portfolio(
 
     equity_curve = (1.0 + weighted_returns).cumprod()
     cumulative_return = equity_curve.iloc[-1] - 1.0 if not equity_curve.empty else 0.0
-    annualized_return = (equity_curve.iloc[-1] ** (252 / len(weighted_returns)) - 1.0) if len(weighted_returns) > 0 else 0.0
+    annualized_return = _annualized_return_from_equity(equity_curve, len(weighted_returns))
     annualized_volatility = float(weighted_returns.std(ddof=0) * (252**0.5)) if not weighted_returns.empty else 0.0
     sharpe_ratio = annualized_return / annualized_volatility if annualized_volatility else 0.0
-    rolling_max = equity_curve.cummax()
-    drawdown = equity_curve / rolling_max - 1.0
+    drawdown = _calculate_drawdown(equity_curve)
     max_drawdown = float(drawdown.min()) if not drawdown.empty else 0.0
 
     warnings: list[str] = []
@@ -158,6 +191,70 @@ def analyze_portfolio(
         if pd.notna(avg_correlation) and avg_correlation > 0.75:
             warnings.append("Average cross-holding correlation is above 0.75.")
 
+    benchmark_series = _extract_price_series(benchmark_history if benchmark_history is not None else pd.DataFrame())
+    benchmark_returns = pd.Series(dtype="float64")
+    benchmark_equity = pd.Series(dtype="float64")
+    benchmark_drawdown = pd.Series(dtype="float64")
+    benchmark_metrics: dict[str, float | None] = {
+        "cumulative_return": None,
+        "annualized_return": None,
+        "excess_return": None,
+        "beta": None,
+        "correlation": None,
+        "tracking_error": None,
+        "max_drawdown": None,
+        "max_drawdown_difference": None,
+    }
+    benchmark_available = False
+
+    if not benchmark_series.empty:
+        benchmark_available = True
+        benchmark_returns = benchmark_series.pct_change().fillna(0.0)
+        benchmark_equity = (1.0 + benchmark_returns).cumprod()
+        benchmark_drawdown = _calculate_drawdown(benchmark_equity)
+        benchmark_cumulative_return = float(benchmark_equity.iloc[-1] - 1.0) if not benchmark_equity.empty else None
+        benchmark_annualized_return = _annualized_return_from_equity(benchmark_equity, len(benchmark_returns))
+        benchmark_max_drawdown = float(benchmark_drawdown.min()) if not benchmark_drawdown.empty else None
+
+        aligned = pd.concat(
+            [
+                weighted_returns.rename("portfolio"),
+                benchmark_returns.rename("benchmark"),
+            ],
+            axis=1,
+            join="inner",
+        ).dropna()
+
+        beta = None
+        correlation = None
+        tracking_error = None
+        if not aligned.empty:
+            benchmark_variance = float(aligned["benchmark"].var(ddof=0))
+            covariance = float(aligned["portfolio"].cov(aligned["benchmark"], ddof=0))
+            correlation = float(aligned["portfolio"].corr(aligned["benchmark"]))
+            tracking_error = float((aligned["portfolio"] - aligned["benchmark"]).std(ddof=0) * (252**0.5))
+            if benchmark_variance:
+                beta = covariance / benchmark_variance
+
+        benchmark_metrics = {
+            "cumulative_return": benchmark_cumulative_return,
+            "annualized_return": benchmark_annualized_return,
+            "excess_return": (
+                cumulative_return - benchmark_cumulative_return
+                if benchmark_cumulative_return is not None
+                else None
+            ),
+            "beta": beta,
+            "correlation": correlation,
+            "tracking_error": tracking_error,
+            "max_drawdown": benchmark_max_drawdown,
+            "max_drawdown_difference": (
+                max_drawdown - benchmark_max_drawdown
+                if benchmark_max_drawdown is not None
+                else None
+            ),
+        }
+
     return {
         "metrics": {
             "cumulative_return": cumulative_return,
@@ -166,14 +263,104 @@ def analyze_portfolio(
             "sharpe_ratio": sharpe_ratio,
             "max_drawdown": max_drawdown,
         },
+        "benchmark_metrics": benchmark_metrics,
+        "benchmark_available": benchmark_available,
+        "benchmark_ticker": benchmark_ticker,
         "warnings": warnings,
         "returns_df": returns_df,
         "correlation_df": correlation_df,
         "portfolio_equity": equity_curve,
         "portfolio_drawdown": drawdown,
+        "benchmark_returns": benchmark_returns,
+        "benchmark_equity": benchmark_equity,
+        "benchmark_drawdown": benchmark_drawdown,
         "holdings_normalized_df": normalized_df,
         "holdings_raw_df": raw_df,
         "weights_df": holdings,
+    }
+
+
+def compare_portfolio_scenarios(
+    current_analysis: dict[str, Any],
+    proposed_analysis: dict[str, Any],
+    current_holdings: pd.DataFrame,
+    proposed_holdings: pd.DataFrame,
+) -> dict[str, Any]:
+    """
+    Compare current and proposed portfolio scenarios using the latest run results.
+    """
+    current_metrics = current_analysis.get("metrics", {})
+    proposed_metrics = proposed_analysis.get("metrics", {})
+
+    current_cash = float(
+        pd.to_numeric(
+            current_holdings.loc[current_holdings["Ticker"] == "CASH", "Weight %"],
+            errors="coerce",
+        ).fillna(0.0).sum()
+    ) if isinstance(current_holdings, pd.DataFrame) and not current_holdings.empty else 0.0
+    proposed_cash = float(
+        pd.to_numeric(
+            proposed_holdings.loc[proposed_holdings["Ticker"] == "CASH", "Weight %"],
+            errors="coerce",
+        ).fillna(0.0).sum()
+    ) if isinstance(proposed_holdings, pd.DataFrame) and not proposed_holdings.empty else 0.0
+
+    current_largest = float(pd.to_numeric(current_holdings.get("Weight %"), errors="coerce").fillna(0.0).max()) if isinstance(current_holdings, pd.DataFrame) and not current_holdings.empty else 0.0
+    proposed_largest = float(pd.to_numeric(proposed_holdings.get("Weight %"), errors="coerce").fillna(0.0).max()) if isinstance(proposed_holdings, pd.DataFrame) and not proposed_holdings.empty else 0.0
+
+    def _metric_delta(metric_name: str) -> float | None:
+        current_value = pd.to_numeric(current_metrics.get(metric_name), errors="coerce")
+        proposed_value = pd.to_numeric(proposed_metrics.get(metric_name), errors="coerce")
+        if pd.isna(current_value) or pd.isna(proposed_value):
+            return None
+        return float(proposed_value - current_value)
+
+    deltas = {
+        "return": _metric_delta("cumulative_return"),
+        "volatility": _metric_delta("annualized_volatility"),
+        "sharpe": _metric_delta("sharpe_ratio"),
+        "drawdown": _metric_delta("max_drawdown"),
+        "largest_holding": proposed_largest - current_largest,
+        "cash_allocation": proposed_cash - current_cash,
+    }
+
+    summary: list[str] = []
+    if deltas["return"] is not None and deltas["volatility"] is not None:
+        if deltas["return"] > 0 and deltas["volatility"] > 0:
+            summary.append("Proposed portfolio increases return but also increases volatility.")
+        elif deltas["return"] > 0 and deltas["volatility"] <= 0:
+            summary.append("Proposed portfolio improves return without taking more volatility.")
+        elif deltas["return"] < 0 and deltas["volatility"] < 0:
+            summary.append("Proposed portfolio lowers return but also reduces volatility.")
+
+    if deltas["drawdown"] is not None:
+        if deltas["drawdown"] > 0:
+            summary.append("Proposed portfolio lowers drawdown.")
+        elif deltas["drawdown"] < 0:
+            summary.append("Proposed portfolio deepens drawdown risk.")
+
+    if deltas["largest_holding"] > 0:
+        summary.append("Proposed portfolio increases concentration risk.")
+    elif deltas["largest_holding"] < 0:
+        summary.append("Proposed portfolio reduces concentration risk.")
+
+    if deltas["cash_allocation"] > 0:
+        summary.append("Proposed portfolio increases cash allocation, which may add defensiveness but reduce upside capture.")
+    elif deltas["cash_allocation"] < 0:
+        summary.append("Proposed portfolio reduces cash allocation, increasing market exposure.")
+
+    if not summary:
+        summary.append("Current and proposed portfolio risk/return characteristics are broadly similar based on available price history.")
+
+    return {
+        "current_metrics": current_metrics,
+        "proposed_metrics": proposed_metrics,
+        "current_largest_holding": current_largest,
+        "proposed_largest_holding": proposed_largest,
+        "current_cash_allocation": current_cash,
+        "proposed_cash_allocation": proposed_cash,
+        "summary": summary,
+        "deltas": deltas,
     }
 
 
@@ -190,6 +377,37 @@ def create_portfolio_cumulative_chart(portfolio_equity: pd.Series) -> go.Figure:
             )
         )
     _apply_dark_layout(fig, "Portfolio Cumulative Return", "Return")
+    fig.update_yaxes(tickformat=".0%")
+    return fig
+
+
+def create_portfolio_vs_benchmark_chart(
+    portfolio_equity: pd.Series,
+    benchmark_equity: pd.Series,
+    benchmark_ticker: str,
+) -> go.Figure:
+    fig = go.Figure()
+    if not portfolio_equity.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=portfolio_equity.index,
+                y=portfolio_equity - 1.0,
+                mode="lines",
+                name="Portfolio",
+                line={"width": 3, "color": "#38bdf8"},
+            )
+        )
+    if not benchmark_equity.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=benchmark_equity.index,
+                y=benchmark_equity - 1.0,
+                mode="lines",
+                name=benchmark_ticker,
+                line={"width": 2.5, "color": "#22c55e"},
+            )
+        )
+    _apply_dark_layout(fig, "Portfolio vs Benchmark Cumulative Return", "Return")
     fig.update_yaxes(tickformat=".0%")
     return fig
 
@@ -258,5 +476,36 @@ def create_drawdown_chart(drawdown_series: pd.Series) -> go.Figure:
             )
         )
     _apply_dark_layout(fig, "Portfolio Drawdown", "Drawdown")
+    fig.update_yaxes(tickformat=".0%")
+    return fig
+
+
+def create_drawdown_comparison_chart(
+    portfolio_drawdown: pd.Series,
+    benchmark_drawdown: pd.Series,
+    benchmark_ticker: str,
+) -> go.Figure:
+    fig = go.Figure()
+    if not portfolio_drawdown.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=portfolio_drawdown.index,
+                y=portfolio_drawdown,
+                mode="lines",
+                name="Portfolio",
+                line={"width": 2.5, "color": "#ef4444"},
+            )
+        )
+    if not benchmark_drawdown.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=benchmark_drawdown.index,
+                y=benchmark_drawdown,
+                mode="lines",
+                name=f"{benchmark_ticker} Drawdown",
+                line={"width": 2.2, "color": "#f59e0b"},
+            )
+        )
+    _apply_dark_layout(fig, "Portfolio vs Benchmark Drawdown", "Drawdown")
     fig.update_yaxes(tickformat=".0%")
     return fig
