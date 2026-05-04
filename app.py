@@ -102,6 +102,28 @@ def _configure_page() -> None:
             color: #f8fafc;
             margin-bottom: 0.35rem;
         }
+        .dbr-page-header {
+            margin-bottom: 1rem;
+        }
+        .dbr-page-header h2 {
+            margin: 0 0 0.35rem 0;
+            color: #f8fafc;
+        }
+        .dbr-page-header p {
+            margin: 0;
+            color: #94a3b8;
+        }
+        .dbr-settings-panel {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            padding: 1rem 1rem 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .dbr-settings-panel h3 {
+            margin: 0 0 0.8rem 0;
+            color: #f8fafc;
+        }
         .dbr-card {
             background: rgba(15, 23, 42, 0.86);
             border: 1px solid rgba(148, 163, 184, 0.14);
@@ -242,6 +264,69 @@ def _section_spacer(height: float = 0.6) -> None:
     Insert consistent vertical spacing between major sections.
     """
     st.markdown(f"<div style='height: {height}rem;'></div>", unsafe_allow_html=True)
+
+
+def _render_home_page() -> None:
+    """
+    Render the public-facing landing page.
+    """
+    st.markdown(
+        """
+        <div class="dbr-hero">
+            <div class="dbr-eyebrow">Rules-Based Equity Research</div>
+            <h1 class="dbr-title">DBR Research Terminal</h1>
+            <p class="dbr-subtitle">Interactive public-market research built on transparent rules, financial statements, valuation data, portfolio context, and market behavior.</p>
+            <div class="dbr-hero-copy">
+                Use the terminal to research one company in depth, compare multiple businesses side by side, or analyze a portfolio with risk and return diagnostics.
+            </div>
+            <div class="dbr-mode-guide">
+                <div class="dbr-mode-box">
+                    <strong>Single Company</strong>
+                    Analyze one ticker with statement trends, valuation, scoring, narrative, and chart-based context.
+                </div>
+                <div class="dbr-mode-box">
+                    <strong>Compare Companies</strong>
+                    Rank multiple companies on growth, margins, balance sheet strength, valuation, and quality score.
+                </div>
+                <div class="dbr-mode-box">
+                    <strong>Portfolio Analysis</strong>
+                    Test a custom portfolio using weighted returns, allocation, correlation, drawdown, and risk diagnostics.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.info("Choose a page from the sidebar to begin.")
+
+
+def _render_page_header(title: str, description: str) -> None:
+    """
+    Render a compact working-page header.
+    """
+    st.markdown(
+        f"""
+        <div class="dbr-page-header">
+            <h2>{title}</h2>
+            <p>{description}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _open_settings_panel(title: str = "Analysis Settings") -> None:
+    """
+    Open a styled settings panel.
+    """
+    st.markdown(f'<div class="dbr-settings-panel"><h3>{title}</h3>', unsafe_allow_html=True)
+
+
+def _close_settings_panel() -> None:
+    """
+    Close a styled settings panel.
+    """
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -1070,13 +1155,24 @@ def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
         _render_kpi_card(column, label, value, sublabel)
 
 
-def _run_portfolio_analysis(price_timeframe: str) -> None:
+def _run_portfolio_analysis() -> None:
     """
     Execute portfolio analysis mode.
     """
-    st.markdown("## Portfolio Analysis")
+    _render_page_header(
+        "Portfolio Analysis",
+        "Analyze a custom basket of holdings using price-based portfolio return, risk, allocation, and drawdown diagnostics.",
+    )
+    if "portfolio_holdings_df" not in st.session_state:
+        st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
+
+    _open_settings_panel("Analysis Settings")
+    timeframe_col = st.columns([1.2])[0]
+    with timeframe_col:
+        price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+    st.caption("Add, edit, or delete holdings. Use CASH for cash allocation.")
     holdings_input = st.data_editor(
-        DEFAULT_PORTFOLIO,
+        st.session_state["portfolio_holdings_df"],
         use_container_width=True,
         num_rows="dynamic",
         hide_index=True,
@@ -1086,23 +1182,54 @@ def _run_portfolio_analysis(price_timeframe: str) -> None:
         },
         key="portfolio_holdings_editor",
     )
-    normalize_weights = st.checkbox("Normalize weights")
+    st.session_state["portfolio_holdings_df"] = holdings_input.copy()
+    normalize_weights = st.checkbox("Normalize weights to 100%")
 
     holdings_df, holding_warnings = clean_holdings(holdings_input, normalize_weights=normalize_weights)
+    total_weight = float(pd.to_numeric(holdings_df.get("Weight %", pd.Series(dtype=float)), errors="coerce").fillna(0.0).sum()) if not holdings_df.empty else 0.0
+    st.write(f"**Total Weight:** {total_weight:.1f}%")
     for warning in holding_warnings:
         st.warning(warning)
+
+    action_col, reset_col = st.columns([1, 1])
+    with action_col:
+        run_clicked = st.button("Run Portfolio Analysis", type="primary", use_container_width=True)
+    with reset_col:
+        reset_clicked = st.button("Reset Portfolio", use_container_width=True)
+    _close_settings_panel()
+
+    if reset_clicked:
+        st.session_state["portfolio_holdings_df"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state["portfolio_holdings_editor"] = DEFAULT_PORTFOLIO.copy()
+        st.session_state.pop("portfolio_analysis_result", None)
+        st.rerun()
 
     if holdings_df.empty:
         st.info("Add at least one holding to analyze the portfolio.")
         return
 
-    with st.spinner("Running portfolio analysis..."):
-        price_history_map: dict[str, pd.DataFrame] = {}
-        for ticker in holdings_df["Ticker"].tolist():
-            if ticker == "CASH":
-                continue
-            price_history_map[ticker] = _cached_price_history(ticker, price_timeframe)
-        analysis = analyze_portfolio(holdings_df, price_history_map)
+    if abs(total_weight - 100.0) > 0.01 and not normalize_weights:
+        st.warning("Portfolio weights must equal 100% unless normalization is enabled.")
+        if "portfolio_analysis_result" not in st.session_state:
+            return
+
+    if run_clicked:
+        if abs(total_weight - 100.0) > 0.01 and not normalize_weights:
+            return
+        with st.spinner("Running portfolio analysis..."):
+            price_history_map: dict[str, pd.DataFrame] = {}
+            for ticker in holdings_df["Ticker"].tolist():
+                if ticker == "CASH":
+                    continue
+                price_history_map[ticker] = _cached_price_history(ticker, price_timeframe)
+            analysis = analyze_portfolio(holdings_df, price_history_map)
+        st.session_state["portfolio_analysis_result"] = analysis
+        st.session_state["portfolio_analysis_holdings"] = holdings_df.copy()
+
+    analysis = st.session_state.get("portfolio_analysis_result")
+    if analysis is None:
+        st.info("Set your holdings and click Run Portfolio Analysis.")
+        return
 
     _section_spacer(0.25)
     _display_portfolio_metrics(analysis.get("metrics", {}))
@@ -1395,35 +1522,19 @@ def main() -> None:
     _configure_page()
     page = st.sidebar.radio(
         "Navigation",
-        ["Single Company", "Compare Companies", "Portfolio Analysis"],
+        ["Home", "Single Company", "Compare Companies", "Portfolio Analysis"],
     )
 
-    st.markdown(
-        """
-        <div class="dbr-hero">
-            <div class="dbr-eyebrow">Rules-Based Equity Research</div>
-            <h1 class="dbr-title">DBR Research Terminal</h1>
-            <p class="dbr-subtitle">Interactive public-market research built on transparent rules, financial statements, valuation data, and market context.</p>
-            <div class="dbr-hero-copy">
-                Analyze a single company in depth or compare multiple businesses side by side. The app combines Yahoo Finance data with deterministic scoring, trend detection, narrative analysis, and visual comparison tools.
-            </div>
-            <div class="dbr-mode-guide">
-                <div class="dbr-mode-box">
-                    <strong>Single Company</strong>
-                    Deep-dive into one ticker with charts, quality scoring, narrative analysis, and valuation context.
-                </div>
-                <div class="dbr-mode-box">
-                    <strong>Compare Companies</strong>
-                    Rank multiple tickers using the latest available financial period, valuation inputs, and business quality scoring.
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    if page == "Home":
+        _render_home_page()
+    elif page == "Single Company":
+        _render_page_header(
+            "Single Company Analysis",
+            "Analyze one ticker using financial statements, valuation, quality scoring, narrative context, and price behavior.",
+        )
 
-    _section_spacer(0.35)
-    if page == "Single Company":
+        _section_spacer(0.25)
+        _open_settings_panel("Analysis Settings")
         input_col, period_col, timeframe_col, count_col = st.columns([2.6, 1.2, 1.2, 1.2])
         with input_col:
             ticker = st.text_input(
@@ -1438,6 +1549,7 @@ def main() -> None:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
         with count_col:
             display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
+        _close_settings_panel()
 
         run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
         if run_clicked:
@@ -1457,6 +1569,13 @@ def main() -> None:
             st.info("Enter a ticker symbol and click Run Analysis.")
 
     elif page == "Compare Companies":
+        _render_page_header(
+            "Compare Companies",
+            "Compare multiple tickers on growth, profitability, valuation, balance sheet strength, and market performance.",
+        )
+
+        _section_spacer(0.25)
+        _open_settings_panel("Analysis Settings")
         input_col, period_col, timeframe_col = st.columns([3.0, 1.3, 1.3])
         with input_col:
             comparison_input = st.text_input(
@@ -1468,6 +1587,7 @@ def main() -> None:
             financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
         with timeframe_col:
             price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+        _close_settings_panel()
 
         run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
         if run_clicked:
@@ -1486,11 +1606,9 @@ def main() -> None:
         else:
             st.info("Enter one or more tickers and click Run Analysis.")
 
-    else:
-        timeframe_col = st.columns([1])[0]
-        with timeframe_col:
-            price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
-        _run_portfolio_analysis(price_timeframe)
+    elif page == "Portfolio Analysis":
+        _section_spacer(0.25)
+        _run_portfolio_analysis()
 
     st.markdown(
         """
