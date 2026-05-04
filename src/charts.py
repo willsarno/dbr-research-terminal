@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -70,11 +72,79 @@ def _column_with_values(frame: pd.DataFrame, column: str) -> pd.Series | None:
     return series
 
 
-def _billions_tick_format(fig: go.Figure) -> go.Figure:
+def format_number_short(value: float | int | None) -> str:
     """
-    Format large currency-like values compactly for readability.
+    Format large numeric values using K/M/B suffixes.
     """
-    fig.update_yaxes(tickformat=",.2s")
+    if value is None or pd.isna(value):
+        return "N/A"
+
+    numeric_value = float(value)
+    absolute_value = abs(numeric_value)
+
+    if absolute_value >= 1_000_000_000:
+        return f"{numeric_value / 1_000_000_000:.1f}B"
+    if absolute_value >= 1_000_000:
+        return f"{numeric_value / 1_000_000:.1f}M"
+    if absolute_value >= 1_000:
+        return f"{numeric_value / 1_000:.1f}K"
+    if float(numeric_value).is_integer():
+        return f"{int(numeric_value)}"
+    return f"{numeric_value:.2f}"
+
+
+def format_dollars_short(value: float | int | None) -> str:
+    """
+    Format large dollar values using K/M/B suffixes.
+    """
+    short_number = format_number_short(value)
+    if short_number == "N/A":
+        return short_number
+    return f"${short_number}"
+
+
+def _apply_short_axis_format(
+    fig: go.Figure,
+    axis: str = "y",
+    currency: bool = False,
+    fixed_range: list[float] | None = None,
+) -> go.Figure:
+    """
+    Apply readable K/M/B tick labels instead of scientific/G notation.
+    """
+    values: list[float] = []
+    for trace in fig.data:
+        trace_values = getattr(trace, axis, None)
+        if trace_values is None:
+            continue
+        numeric_values = pd.to_numeric(pd.Series(trace_values), errors="coerce").dropna().tolist()
+        values.extend(float(value) for value in numeric_values)
+
+    update_kwargs: dict[str, object] = {}
+    if fixed_range is not None:
+        update_kwargs["range"] = fixed_range
+        values.extend([fixed_range[0], fixed_range[1]])
+
+    if not values:
+        fig.update_yaxes(**update_kwargs)
+        return fig
+
+    min_value = min(values)
+    max_value = max(values)
+    if min_value == max_value:
+        tick_values = [min_value]
+    else:
+        steps = 4
+        span = max_value - min_value
+        step = span / steps if span else 1.0
+        tick_values = [min_value + (step * index) for index in range(steps + 1)]
+
+    formatter = format_dollars_short if currency else format_number_short
+    tick_text = [formatter(value) for value in tick_values]
+    update_kwargs["tickmode"] = "array"
+    update_kwargs["tickvals"] = tick_values
+    update_kwargs["ticktext"] = tick_text
+    fig.update_yaxes(**update_kwargs)
     return fig
 
 
@@ -121,11 +191,19 @@ def create_comparison_bar_chart(
     )
     _apply_dark_layout(fig, title, yaxis_title)
     fig.update_xaxes(type="category")
-    if tickformat:
-        fig.update_yaxes(tickformat=tickformat)
-    if yaxis_range is not None:
-        fig.update_yaxes(range=yaxis_range)
-    return fig
+    if tickformat == "percent":
+        fig.update_yaxes(tickformat=".0%")
+        if yaxis_range is not None:
+            fig.update_yaxes(range=yaxis_range)
+        return fig
+    if tickformat == "score":
+        return _apply_short_axis_format(fig, currency=False, fixed_range=yaxis_range)
+    if tickformat == "multiple":
+        fig.update_yaxes(tickformat=".1f", ticksuffix="x")
+        if yaxis_range is not None:
+            fig.update_yaxes(range=yaxis_range)
+        return fig
+    return _apply_short_axis_format(fig, currency=(tickformat == "currency"), fixed_range=yaxis_range)
 
 
 def _configure_period_axis(fig: go.Figure, metrics: pd.DataFrame) -> go.Figure:
@@ -168,7 +246,7 @@ def create_revenue_chart(metrics_df: pd.DataFrame) -> go.Figure:
 
     _apply_dark_layout(fig, "Revenue", "Revenue")
     _configure_period_axis(fig, metrics)
-    return _billions_tick_format(fig)
+    return _apply_short_axis_format(fig, currency=True)
 
 
 def create_margin_chart(metrics_df: pd.DataFrame) -> go.Figure:
@@ -253,7 +331,7 @@ def create_income_fcf_chart(metrics_df: pd.DataFrame) -> go.Figure:
 
     _apply_dark_layout(fig, "Net Income, EBITDA, and Free Cash Flow", "Value")
     _configure_period_axis(fig, metrics)
-    return _billions_tick_format(fig)
+    return _apply_short_axis_format(fig, currency=True)
 
 
 def create_cash_debt_chart(metrics_df: pd.DataFrame) -> go.Figure:
@@ -303,7 +381,7 @@ def create_cash_debt_chart(metrics_df: pd.DataFrame) -> go.Figure:
 
     _apply_dark_layout(fig, "Cash, Debt, and Net Cash / Debt", "Value")
     _configure_period_axis(fig, metrics)
-    return _billions_tick_format(fig)
+    return _apply_short_axis_format(fig, currency=True)
 
 
 def create_stock_price_chart(
@@ -332,7 +410,51 @@ def create_stock_price_chart(
 
     _apply_dark_layout(fig, f"{ticker.upper()} Stock Price ({price_period.upper()})", "Price")
     fig.update_layout(height=360)
-    return fig
+    return _apply_short_axis_format(fig, currency=True)
+
+
+def create_multi_ticker_price_chart(
+    price_history_map: dict[str, pd.DataFrame],
+    price_period: str = "1y",
+    normalized: bool = True,
+) -> go.Figure:
+    """
+    Build a multi-ticker line chart for comparison mode.
+    """
+    fig = go.Figure()
+    title = "Stock Price Performance (Normalized)" if normalized else "Stock Price (Raw)"
+    yaxis_title = "Normalized to 100" if normalized else "Price"
+
+    palette = ["#38bdf8", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6", "#eab308"]
+    for index, (ticker, frame) in enumerate(price_history_map.items()):
+        prices = _safe_price_frame(frame)
+        close_series = _column_with_values(prices, "Close")
+        if close_series is None or "Date" not in prices.columns:
+            continue
+
+        chart_values = close_series.copy()
+        if normalized:
+            first_value = chart_values.dropna().iloc[0] if not chart_values.dropna().empty else None
+            if first_value in (None, 0):
+                continue
+            chart_values = (chart_values / float(first_value)) * 100.0
+
+        fig.add_trace(
+            go.Scatter(
+                x=prices["Date"],
+                y=chart_values,
+                mode="lines",
+                name=ticker,
+                line={"width": 2.5, "color": palette[index % len(palette)]},
+            )
+        )
+
+    _apply_dark_layout(fig, title, yaxis_title)
+    fig.update_layout(height=380)
+    if normalized:
+        fig.update_yaxes(tickformat=".0f")
+        return fig
+    return _apply_short_axis_format(fig, currency=True)
 
 
 def create_all_charts(

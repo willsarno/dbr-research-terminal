@@ -5,7 +5,13 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
-from src.charts import create_all_charts, create_comparison_bar_chart
+from src.charts import (
+    create_all_charts,
+    create_comparison_bar_chart,
+    create_multi_ticker_price_chart,
+    format_dollars_short,
+    format_number_short,
+)
 from src.data_loader import load_all_financial_data, summarize_data_availability
 from src.metrics import build_business_quality_score, build_narrative_package, calculate_financial_metrics
 from src.report_builder import format_money, format_percent, latest_metric_value, latest_year, safe_string
@@ -245,7 +251,7 @@ def _cached_financial_data(
 
 
 def _format_market_cap(value: Any) -> str:
-    return format_money(value)
+    return format_dollars_short(value)
 
 
 def _format_multiple(value: Any) -> str:
@@ -276,6 +282,14 @@ def _format_compare_percent(value: Any) -> str:
     if pd.isna(numeric_value):
         return "N/A"
     return f"{float(numeric_value):.1%}"
+
+
+def _format_table_money(value: Any) -> str:
+    return format_dollars_short(value)
+
+
+def _format_table_percent(value: Any) -> str:
+    return format_percent(value)
 
 
 def _format_price_band_position(current_price: Any, anchor_price: Any, direction: str) -> str:
@@ -801,7 +815,7 @@ def _build_comparison_row(
         "Ticker": ticker,
         "Company Name": safe_string(info_row.get("name") if hasattr(info_row, "get") else None, ticker),
         "Sector": safe_string(info_row.get("sector") if hasattr(info_row, "get") else None),
-        "Market Cap": info_row.get("market_cap") if hasattr(info_row, "get") else None,
+            "Market Cap": info_row.get("market_cap") if hasattr(info_row, "get") else None,
         "Revenue": latest_metric_value(metrics_df, "revenue"),
         "Revenue Growth": latest_metric_value(metrics_df, "revenue_growth_pct"),
         "EBITDA": latest_metric_value(metrics_df, "ebitda"),
@@ -845,7 +859,7 @@ def _format_comparison_table(comparison_df: pd.DataFrame) -> pd.DataFrame:
 
     for column in money_columns:
         if column in display_df.columns:
-            display_df[column] = display_df[column].apply(format_money)
+            display_df[column] = display_df[column].apply(format_dollars_short)
     for column in percent_columns:
         if column in display_df.columns:
             display_df[column] = display_df[column].apply(_format_compare_percent)
@@ -909,12 +923,12 @@ def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
     """
     st.markdown("## Comparison Charts")
     chart_specs = [
-        ("Revenue Growth", "Revenue Growth by Ticker", "Revenue Growth", ".0%", "#38bdf8", None),
-        ("Net Income Margin", "Net Income Margin by Ticker", "Net Income Margin", ".0%", "#22c55e", None),
-        ("Free Cash Flow", "Free Cash Flow by Ticker", "Free Cash Flow", ",.2s", "#f59e0b", None),
-        ("Net Cash / Debt", "Net Cash / Debt by Ticker", "Net Cash / Debt", ",.2s", "#8b5cf6", None),
-        ("P/S", "P/S Multiple by Ticker", "P/S", ".2f", "#ef4444", None),
-        ("Business Quality Score", "Business Quality Score by Ticker", "Score", None, "#38bdf8", [0, 100]),
+        ("Revenue Growth", "Revenue Growth by Ticker", "Revenue Growth", "percent", "#38bdf8", None),
+        ("Net Income Margin", "Net Income Margin by Ticker", "Net Income Margin", "percent", "#22c55e", None),
+        ("Free Cash Flow", "Free Cash Flow by Ticker", "Free Cash Flow", "currency", "#f59e0b", None),
+        ("Net Cash / Debt", "Net Cash / Debt by Ticker", "Net Cash / Debt", "currency", "#8b5cf6", None),
+        ("P/S", "P/S Multiple by Ticker", "P/S", "multiple", "#ef4444", None),
+        ("Business Quality Score", "Business Quality Score by Ticker", "Score", "score", "#38bdf8", [0, 100]),
     ]
 
     for first_spec, second_spec in zip(chart_specs[::2], chart_specs[1::2]):
@@ -943,6 +957,29 @@ def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
             st.plotly_chart(fig, use_container_width=True)
 
 
+def _display_comparison_price_charts(
+    price_history_map: dict[str, pd.DataFrame],
+    price_timeframe: str,
+) -> None:
+    """
+    Render multi-ticker comparison price charts.
+    """
+    st.markdown("## Price Comparison")
+    normalized_fig = create_multi_ticker_price_chart(
+        price_history_map,
+        price_period=price_timeframe,
+        normalized=True,
+    )
+    st.plotly_chart(normalized_fig, use_container_width=True)
+
+    raw_fig = create_multi_ticker_price_chart(
+        price_history_map,
+        price_period=price_timeframe,
+        normalized=False,
+    )
+    st.plotly_chart(raw_fig, use_container_width=True)
+
+
 def _run_comparison_analysis(
     tickers: list[str],
     financial_period: str,
@@ -953,6 +990,7 @@ def _run_comparison_analysis(
     """
     comparison_rows: list[dict[str, Any]] = []
     failed_tickers: list[str] = []
+    price_history_map: dict[str, pd.DataFrame] = {}
 
     with st.spinner(f"Running comparison for {', '.join(tickers)}..."):
         for ticker in tickers:
@@ -970,6 +1008,7 @@ def _run_comparison_analysis(
                     ),
                 )
                 comparison_rows.append(_build_comparison_row(ticker, company_info_df, metrics_df))
+                price_history_map[ticker] = data.get("price_history", pd.DataFrame())
             except Exception:
                 failed_tickers.append(ticker)
 
@@ -985,6 +1024,8 @@ def _run_comparison_analysis(
     st.markdown('<div class="dbr-compare-panel">', unsafe_allow_html=True)
     _display_best_worst_section(comparison_df)
     st.markdown("</div>", unsafe_allow_html=True)
+    _section_spacer(0.35)
+    _display_comparison_price_charts(price_history_map, price_timeframe)
     _section_spacer(0.35)
     _display_comparison_charts(comparison_df)
     _section_spacer(0.35)
@@ -1042,15 +1083,6 @@ def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_in
 
     with metrics_tab:
         _display_metrics_table(metrics_df)
-
-
-def _format_table_money(value: Any) -> str:
-    return format_money(value)
-
-
-def _format_table_percent(value: Any) -> str:
-    return format_percent(value)
-
 
 def _prepare_metrics_table(metrics_df: pd.DataFrame) -> pd.DataFrame:
     """
