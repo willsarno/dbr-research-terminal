@@ -12,8 +12,18 @@ from src.charts import (
     format_dollars_short,
     format_number_short,
 )
-from src.data_loader import load_all_financial_data, summarize_data_availability
+from src.data_loader import get_price_history, load_all_financial_data, summarize_data_availability
 from src.metrics import build_business_quality_score, build_narrative_package, calculate_financial_metrics
+from src.portfolio import (
+    DEFAULT_PORTFOLIO,
+    analyze_portfolio,
+    clean_holdings,
+    create_allocation_chart,
+    create_correlation_heatmap,
+    create_drawdown_chart,
+    create_holdings_comparison_chart,
+    create_portfolio_cumulative_chart,
+)
 from src.report_builder import format_money, format_percent, latest_metric_value, latest_year, safe_string
 
 
@@ -248,6 +258,14 @@ def _cached_financial_data(
         period_type=financial_period.lower(),
         price_period=price_timeframe,
     )
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_price_history(ticker: str, price_timeframe: str) -> pd.DataFrame:
+    """
+    Cache price-only requests for portfolio analysis.
+    """
+    return get_price_history(ticker, period=price_timeframe)
 
 
 def _format_market_cap(value: Any) -> str:
@@ -1036,6 +1054,88 @@ def _run_comparison_analysis(
         st.warning(f"Some tickers could not be loaded: {', '.join(failed_tickers)}")
 
 
+def _display_portfolio_metrics(metrics: dict[str, Any]) -> None:
+    """
+    Render portfolio summary KPI cards.
+    """
+    metric_cards = [
+        ("Cumulative Return", format_percent(metrics.get("cumulative_return")), "Portfolio total return"),
+        ("Annualized Return", format_percent(metrics.get("annualized_return")), "Annualized"),
+        ("Annualized Volatility", format_percent(metrics.get("annualized_volatility")), "Risk"),
+        ("Sharpe Ratio", _format_plain_number(metrics.get("sharpe_ratio")), "Risk-free rate = 0"),
+        ("Max Drawdown", format_percent(metrics.get("max_drawdown")), "Worst peak-to-trough"),
+    ]
+    columns = st.columns(5)
+    for column, (label, value, sublabel) in zip(columns, metric_cards):
+        _render_kpi_card(column, label, value, sublabel)
+
+
+def _run_portfolio_analysis(price_timeframe: str) -> None:
+    """
+    Execute portfolio analysis mode.
+    """
+    st.markdown("## Portfolio Analysis")
+    holdings_input = st.data_editor(
+        DEFAULT_PORTFOLIO,
+        use_container_width=True,
+        num_rows="dynamic",
+        hide_index=True,
+        column_config={
+            "Ticker": st.column_config.TextColumn("Ticker"),
+            "Weight %": st.column_config.NumberColumn("Weight %", format="%.2f"),
+        },
+        key="portfolio_holdings_editor",
+    )
+    normalize_weights = st.checkbox("Normalize weights")
+
+    holdings_df, holding_warnings = clean_holdings(holdings_input, normalize_weights=normalize_weights)
+    for warning in holding_warnings:
+        st.warning(warning)
+
+    if holdings_df.empty:
+        st.info("Add at least one holding to analyze the portfolio.")
+        return
+
+    with st.spinner("Running portfolio analysis..."):
+        price_history_map: dict[str, pd.DataFrame] = {}
+        for ticker in holdings_df["Ticker"].tolist():
+            if ticker == "CASH":
+                continue
+            price_history_map[ticker] = _cached_price_history(ticker, price_timeframe)
+        analysis = analyze_portfolio(holdings_df, price_history_map)
+
+    _section_spacer(0.25)
+    _display_portfolio_metrics(analysis.get("metrics", {}))
+    _section_spacer(0.35)
+
+    for warning in analysis.get("warnings", []):
+        st.warning(warning)
+
+    left_col, right_col = st.columns(2)
+    with left_col:
+        st.plotly_chart(
+            create_portfolio_cumulative_chart(analysis.get("portfolio_equity", pd.Series(dtype="float64"))),
+            use_container_width=True,
+        )
+        st.plotly_chart(
+            create_allocation_chart(analysis.get("weights_df", holdings_df)),
+            use_container_width=True,
+        )
+        st.plotly_chart(
+            create_drawdown_chart(analysis.get("portfolio_drawdown", pd.Series(dtype="float64"))),
+            use_container_width=True,
+        )
+    with right_col:
+        st.plotly_chart(
+            create_holdings_comparison_chart(analysis.get("holdings_normalized_df", pd.DataFrame())),
+            use_container_width=True,
+        )
+        st.plotly_chart(
+            create_correlation_heatmap(analysis.get("correlation_df", pd.DataFrame())),
+            use_container_width=True,
+        )
+
+
 def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
     """
     Render non-empty charts inside Streamlit tabs.
@@ -1293,6 +1393,10 @@ def main() -> None:
     Streamlit entrypoint for the DBR Research Terminal UI.
     """
     _configure_page()
+    page = st.sidebar.radio(
+        "Navigation",
+        ["Single Company", "Compare Companies", "Portfolio Analysis"],
+    )
 
     st.markdown(
         """
@@ -1319,37 +1423,25 @@ def main() -> None:
     )
 
     _section_spacer(0.35)
-    mode_col, input_col, period_col, timeframe_col, count_col = st.columns([1.3, 2.4, 1.2, 1.2, 1.2])
-    with mode_col:
-        analysis_mode = st.selectbox("Mode", ["Single Company", "Compare Companies"], index=0)
-    with input_col:
-        if analysis_mode == "Single Company":
+    if page == "Single Company":
+        input_col, period_col, timeframe_col, count_col = st.columns([2.6, 1.2, 1.2, 1.2])
+        with input_col:
             ticker = st.text_input(
                 "Ticker Symbol",
                 value="SOFI",
                 max_chars=15,
                 help="Enter a public company ticker. ETFs may not have financial statements.",
             ).strip().upper()
-            comparison_input = ""
-        else:
-            comparison_input = st.text_input(
-                "Ticker Symbols",
-                value="SOFI, HOOD, AFRM",
-                help="Enter comma-separated public company tickers.",
-            ).strip().upper()
-            ticker = ""
-    with period_col:
-        financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
-    with timeframe_col:
-        price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
-    with count_col:
-        display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
+        with period_col:
+            financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
+        with timeframe_col:
+            price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+        with count_col:
+            display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
 
-    run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
-
-    if run_clicked:
-        try:
-            if analysis_mode == "Single Company":
+        run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
+        if run_clicked:
+            try:
                 if not ticker:
                     st.error("Enter a ticker symbol before running analysis.")
                     return
@@ -1359,7 +1451,27 @@ def main() -> None:
                     price_timeframe=price_timeframe,
                     display_periods=display_periods,
                 )
-            else:
+            except Exception as exc:
+                st.error(f"Analysis failed for {ticker}: {exc}")
+        else:
+            st.info("Enter a ticker symbol and click Run Analysis.")
+
+    elif page == "Compare Companies":
+        input_col, period_col, timeframe_col = st.columns([3.0, 1.3, 1.3])
+        with input_col:
+            comparison_input = st.text_input(
+                "Ticker Symbols",
+                value="SOFI, HOOD, AFRM",
+                help="Enter comma-separated public company tickers.",
+            ).strip().upper()
+        with period_col:
+            financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
+        with timeframe_col:
+            price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+
+        run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
+        if run_clicked:
+            try:
                 tickers = _parse_ticker_list(comparison_input)
                 if not tickers:
                     st.error("Enter at least one ticker for comparison.")
@@ -1369,10 +1481,16 @@ def main() -> None:
                     financial_period=financial_period,
                     price_timeframe=price_timeframe,
                 )
-        except Exception as exc:
-            st.error(f"Analysis failed for {ticker}: {exc}")
+            except Exception as exc:
+                st.error(f"Comparison analysis failed: {exc}")
+        else:
+            st.info("Enter one or more tickers and click Run Analysis.")
+
     else:
-        st.info("Enter a ticker symbol and click Run Analysis.")
+        timeframe_col = st.columns([1])[0]
+        with timeframe_col:
+            price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+        _run_portfolio_analysis(price_timeframe)
 
     st.markdown(
         """
