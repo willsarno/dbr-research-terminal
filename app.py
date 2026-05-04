@@ -1,0 +1,1356 @@
+from __future__ import annotations
+
+from typing import Any
+
+import pandas as pd
+import streamlit as st
+
+from src.charts import create_all_charts, create_comparison_bar_chart
+from src.data_loader import load_all_financial_data, summarize_data_availability
+from src.metrics import build_business_quality_score, build_narrative_package, calculate_financial_metrics
+from src.report_builder import format_money, format_percent, latest_metric_value, latest_year, safe_string
+
+
+def _configure_page() -> None:
+    """
+    Configure the Streamlit page and inject DBR-style dark UI styling.
+    """
+    st.set_page_config(
+        page_title="DBR Research Terminal",
+        page_icon="DBR",
+        layout="wide",
+        initial_sidebar_state="collapsed",
+    )
+
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background:
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 30%),
+                radial-gradient(circle at top left, rgba(34, 197, 94, 0.10), transparent 24%),
+                linear-gradient(180deg, #020617 0%, #081120 100%);
+            color: #e2e8f0;
+        }
+        .block-container {
+            max-width: 1280px;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+        .dbr-hero {
+            padding: 1.6rem 1.7rem;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(17, 24, 39, 0.90));
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+            margin-bottom: 1.4rem;
+        }
+        .dbr-eyebrow {
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.78rem;
+            margin-bottom: 0.45rem;
+        }
+        .dbr-title {
+            font-size: 2.05rem;
+            font-weight: 700;
+            margin: 0;
+            color: #f8fafc;
+        }
+        .dbr-subtitle {
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            margin-bottom: 0;
+        }
+        .dbr-hero-copy {
+            color: #cbd5e1;
+            margin-top: 0.8rem;
+            max-width: 860px;
+            line-height: 1.65;
+        }
+        .dbr-mode-guide {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.85rem;
+            margin-top: 1rem;
+        }
+        .dbr-mode-box {
+            background: rgba(2, 6, 23, 0.45);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 16px;
+            padding: 0.95rem 1rem;
+        }
+        .dbr-mode-box strong {
+            display: block;
+            color: #f8fafc;
+            margin-bottom: 0.35rem;
+        }
+        .dbr-card {
+            background: rgba(15, 23, 42, 0.86);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            padding: 0.95rem 0.95rem 0.8rem;
+            min-height: 108px;
+        }
+        .dbr-row-gap {
+            margin-top: 0.5rem;
+            margin-bottom: 1.15rem;
+        }
+        .dbr-card-label {
+            color: #93c5fd;
+            font-size: 0.86rem;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .dbr-card-value {
+            color: #f8fafc;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .dbr-card-sub {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 0.35rem;
+        }
+        .dbr-flag {
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 14px;
+            padding: 0.75rem 0.9rem;
+            min-height: 82px;
+        }
+        .dbr-flag-label {
+            color: #93c5fd;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
+        }
+        .dbr-flag-value {
+            color: #f8fafc;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        .dbr-flag-sub {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        .dbr-snapshot {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            padding: 1rem 1.15rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .dbr-snapshot h3 {
+            margin-top: 0;
+            margin-bottom: 0.65rem;
+            color: #f8fafc;
+        }
+        .dbr-snapshot ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: #dbe4f0;
+        }
+        .dbr-snapshot li {
+            margin-bottom: 0.45rem;
+        }
+        .dbr-score-note {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+        }
+        .dbr-muted-note {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 0.8rem;
+        }
+        .dbr-valuation-panel {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            padding: 1rem 1rem 0.7rem;
+            margin-top: 0.4rem;
+            margin-bottom: 0.8rem;
+        }
+        .dbr-valuation-panel h3 {
+            margin: 0 0 0.9rem 0;
+            color: #f8fafc;
+        }
+        .dbr-compare-panel {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            padding: 1rem 1.1rem 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .dbr-footer {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        div[data-testid="stTextInput"] input {
+            background-color: rgba(15, 23, 42, 0.92);
+            color: #f8fafc;
+            border-radius: 12px;
+        }
+        div[data-testid="stDataFrame"] {
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        div[data-testid="stTabs"] {
+            margin-top: 0.85rem;
+        }
+        div[data-testid="stPlotlyChart"] {
+            margin-bottom: 1rem;
+        }
+        div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stPlotlyChart"]) {
+            padding-top: 0.25rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _section_spacer(height: float = 0.6) -> None:
+    """
+    Insert consistent vertical spacing between major sections.
+    """
+    st.markdown(f"<div style='height: {height}rem;'></div>", unsafe_allow_html=True)
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_financial_data(
+    ticker: str,
+    financial_period: str,
+    price_timeframe: str,
+) -> dict[str, pd.DataFrame]:
+    """
+    Cache yfinance-backed data pulls at the Streamlit layer.
+    """
+    return load_all_financial_data(
+        ticker,
+        period_type=financial_period.lower(),
+        price_period=price_timeframe,
+    )
+
+
+def _format_market_cap(value: Any) -> str:
+    return format_money(value)
+
+
+def _format_multiple(value: Any) -> str:
+    """
+    Format valuation multiples compactly.
+    """
+    numeric_value = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric_value):
+        return "N/A"
+    return f"{float(numeric_value):.2f}x"
+
+
+def _format_plain_number(value: Any) -> str:
+    """
+    Format plain numeric values such as beta.
+    """
+    numeric_value = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric_value):
+        return "N/A"
+    return f"{float(numeric_value):.2f}"
+
+
+def _format_compare_percent(value: Any) -> str:
+    """
+    Format percentage values for comparison tables.
+    """
+    numeric_value = pd.to_numeric(value, errors="coerce")
+    if pd.isna(numeric_value):
+        return "N/A"
+    return f"{float(numeric_value):.1%}"
+
+
+def _format_price_band_position(current_price: Any, anchor_price: Any, direction: str) -> str:
+    """
+    Show current price as a percentage below the high or above the low.
+    """
+    current_numeric = pd.to_numeric(current_price, errors="coerce")
+    anchor_numeric = pd.to_numeric(anchor_price, errors="coerce")
+    if pd.isna(current_numeric) or pd.isna(anchor_numeric) or anchor_numeric == 0:
+        return "N/A"
+
+    if direction == "high":
+        value = (float(current_numeric) / float(anchor_numeric)) - 1
+        return f"{value:.1%} vs high"
+
+    value = (float(current_numeric) / float(anchor_numeric)) - 1
+    return f"{value:+.1%} vs low"
+
+
+def _is_financial_company(company_info_df: pd.DataFrame) -> bool:
+    """
+    Detect whether the company appears to be in a financial category.
+    """
+    if not isinstance(company_info_df, pd.DataFrame) or company_info_df.empty:
+        return False
+
+    row = company_info_df.iloc[0]
+    tokens = " ".join(
+        [
+            safe_string(row.get("sector") if hasattr(row, "get") else None, ""),
+            safe_string(row.get("name") if hasattr(row, "get") else None, ""),
+        ]
+    ).lower()
+    keywords = [
+        "financial",
+        "bank",
+        "capital markets",
+        "credit",
+        "insurance",
+        "lending",
+    ]
+    return any(keyword in tokens for keyword in keywords)
+
+
+def _display_company_header(ticker: str, company_info_df: pd.DataFrame, metrics_df: pd.DataFrame) -> None:
+    """
+    Render the company summary block at the top of the app.
+    """
+    info_row = company_info_df.iloc[0] if isinstance(company_info_df, pd.DataFrame) and not company_info_df.empty else {}
+    company_name = safe_string(info_row.get("name") if hasattr(info_row, "get") else None, ticker.upper())
+    sector = safe_string(info_row.get("sector") if hasattr(info_row, "get") else None)
+    market_cap = _format_market_cap(info_row.get("market_cap") if hasattr(info_row, "get") else None)
+    fiscal_year = latest_year(metrics_df)
+
+    st.markdown(
+        f"""
+        <div class="dbr-hero">
+            <div class="dbr-eyebrow">DBR Research Terminal</div>
+            <h1 class="dbr-title">{company_name} ({ticker.upper()})</h1>
+            <p class="dbr-subtitle">Sector: {sector} | Market Cap: {market_cap} | Latest Fiscal Year: {fiscal_year}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _latest_info_row(company_info_df: pd.DataFrame) -> Any:
+    """
+    Safely return the single company info row or an empty mapping.
+    """
+    if isinstance(company_info_df, pd.DataFrame) and not company_info_df.empty:
+        return company_info_df.iloc[0]
+    return {}
+
+
+def _parse_ticker_list(raw_input: str) -> list[str]:
+    """
+    Parse a comma-separated ticker input into a clean unique list.
+    """
+    seen: set[str] = set()
+    tickers: list[str] = []
+    for part in raw_input.split(","):
+        ticker = part.strip().upper()
+        if ticker and ticker not in seen:
+            seen.add(ticker)
+            tickers.append(ticker)
+    return tickers
+
+
+def _render_kpi_card(column: Any, label: str, value: str, sublabel: str) -> None:
+    with column:
+        st.markdown(
+            f"""
+            <div class="dbr-card">
+                <div class="dbr-card-label">{label}</div>
+                <div class="dbr-card-value">{value}</div>
+                <div class="dbr-card-sub">{sublabel}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def _render_flag_card(column: Any, label: str, value: str, sublabel: str) -> None:
+    with column:
+        st.markdown(
+            f"""
+            <div class="dbr-flag">
+                <div class="dbr-flag-label">{label}</div>
+                <div class="dbr-flag-value">{value}</div>
+                <div class="dbr-flag-sub">{sublabel}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def _metric_series(metrics_df: pd.DataFrame, column: str) -> pd.Series:
+    """
+    Return a clean numeric series for one metric column.
+    """
+    if not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty or column not in metrics_df.columns:
+        return pd.Series(dtype="float64")
+    return pd.to_numeric(metrics_df[column], errors="coerce").dropna()
+
+
+def _latest_and_prior(metrics_df: pd.DataFrame, column: str) -> tuple[Any, Any]:
+    """
+    Return the latest and prior non-null values for a metric.
+    """
+    series = _metric_series(metrics_df, column)
+    if series.empty:
+        return None, None
+    latest = series.iloc[-1]
+    prior = series.iloc[-2] if len(series) > 1 else None
+    return latest, prior
+
+
+def _delta_percent(latest: Any, prior: Any) -> Any:
+    if latest is None or prior is None:
+        return None
+    if pd.isna(latest) or pd.isna(prior) or prior == 0:
+        return None
+    return (float(latest) - float(prior)) / abs(float(prior))
+
+
+def _delta_money(latest: Any, prior: Any) -> Any:
+    if latest is None or prior is None:
+        return None
+    if pd.isna(latest) or pd.isna(prior):
+        return None
+    return float(latest) - float(prior)
+
+
+def _signed_percent_text(value: Any) -> str:
+    if value is None or pd.isna(value):
+        return "Change unavailable"
+    return f"Vs prior {'+' if value >= 0 else ''}{value:.1%}"
+
+
+def _signed_money_text(value: Any) -> str:
+    if value is None or pd.isna(value):
+        return "Change unavailable"
+    sign = "+" if value >= 0 else "-"
+    return f"Vs prior {sign}{format_money(abs(float(value)))}"
+
+
+def _trend_text(metrics_df: pd.DataFrame, column: str, positive_label: str, negative_label: str) -> str:
+    latest, prior = _latest_and_prior(metrics_df, column)
+    delta = _delta_percent(latest, prior)
+    if delta is None:
+        return "Trend unavailable"
+    return positive_label if delta >= 0 else negative_label
+
+
+def _display_kpis(metrics_df: pd.DataFrame) -> None:
+    """
+    Render KPI cards using the latest available values and change context.
+    """
+    kpi_values = [
+        (
+            "Revenue",
+            format_money(latest_metric_value(metrics_df, "revenue")),
+            _signed_percent_text(_delta_percent(*_latest_and_prior(metrics_df, "revenue"))),
+        ),
+        (
+            "Revenue Growth",
+            format_percent(latest_metric_value(metrics_df, "revenue_growth_pct")),
+            _trend_text(metrics_df, "revenue_growth_pct", "Growth improving", "Growth slowing"),
+        ),
+        (
+            "EBITDA",
+            format_money(latest_metric_value(metrics_df, "ebitda")),
+            _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "ebitda"))),
+        ),
+        (
+            "EBITDA Margin",
+            format_percent(latest_metric_value(metrics_df, "ebitda_margin_pct")),
+            _trend_text(metrics_df, "ebitda_margin_pct", "Margin improving", "Margin compressing"),
+        ),
+        (
+            "Net Income",
+            format_money(latest_metric_value(metrics_df, "net_income")),
+            _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "net_income"))),
+        ),
+        (
+            "Free Cash Flow",
+            format_money(latest_metric_value(metrics_df, "free_cash_flow")),
+            _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "free_cash_flow"))),
+        ),
+        (
+            "Cash",
+            format_money(latest_metric_value(metrics_df, "cash_and_equivalents")),
+            _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "cash_and_equivalents"))),
+        ),
+        (
+            "Debt",
+            format_money(latest_metric_value(metrics_df, "total_debt")),
+            _signed_money_text(_delta_money(*_latest_and_prior(metrics_df, "total_debt"))),
+        ),
+    ]
+
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    first_row = st.columns(4)
+    for column, (label, value, sublabel) in zip(first_row, kpi_values[:4]):
+        _render_kpi_card(column, label, value, sublabel)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    second_row = st.columns(4)
+    for column, (label, value, sublabel) in zip(second_row, kpi_values[4:]):
+        _render_kpi_card(column, label, value, sublabel)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _quality_flags(metrics_df: pd.DataFrame) -> list[tuple[str, str, str]]:
+    revenue_growth = latest_metric_value(metrics_df, "revenue_growth_pct")
+    net_income = latest_metric_value(metrics_df, "net_income")
+    free_cash_flow = latest_metric_value(metrics_df, "free_cash_flow")
+    net_cash_debt = latest_metric_value(metrics_df, "net_cash_debt")
+
+    revenue_growth_flag = "N/A"
+    if revenue_growth is not None and not pd.isna(revenue_growth):
+        revenue_growth_flag = "Strong" if revenue_growth > 0.1 else "Weak"
+
+    profitability_flag = "N/A"
+    if net_income is not None and not pd.isna(net_income):
+        profitability_flag = "Positive" if net_income >= 0 else "Negative"
+
+    fcf_flag = "N/A"
+    if free_cash_flow is not None and not pd.isna(free_cash_flow):
+        fcf_flag = "Positive" if free_cash_flow >= 0 else "Negative"
+
+    balance_flag = "N/A"
+    if net_cash_debt is not None and not pd.isna(net_cash_debt):
+        balance_flag = "Net Cash" if net_cash_debt >= 0 else "Net Debt"
+
+    return [
+        ("Revenue Growth", revenue_growth_flag, format_percent(revenue_growth)),
+        ("Profitability", profitability_flag, format_money(net_income)),
+        ("Free Cash Flow", fcf_flag, format_money(free_cash_flow)),
+        ("Balance Sheet", balance_flag, format_money(net_cash_debt)),
+    ]
+
+
+def _display_quality_flags(metrics_df: pd.DataFrame) -> None:
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    flag_columns = st.columns(4)
+    for column, (label, value, sublabel) in zip(flag_columns, _quality_flags(metrics_df)):
+        _render_flag_card(column, label, value, sublabel)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: bool) -> list[str]:
+    """
+    Generate a short set of decision-useful bullet insights.
+    """
+    bullets: list[str] = []
+
+    latest_revenue_growth = latest_metric_value(metrics_df, "revenue_growth_pct")
+    if latest_revenue_growth is not None and not pd.isna(latest_revenue_growth):
+        if latest_revenue_growth > 0.1:
+            bullets.append(f"Revenue growth remains strong at {format_percent(latest_revenue_growth)} in the latest period.")
+        elif latest_revenue_growth >= 0:
+            bullets.append(f"Revenue is still growing, but at a more modest {format_percent(latest_revenue_growth)} in the latest period.")
+        else:
+            bullets.append(f"Revenue declined {format_percent(abs(float(latest_revenue_growth)))} in the latest period.")
+
+    latest_net_income = latest_metric_value(metrics_df, "net_income")
+    if latest_net_income is not None and not pd.isna(latest_net_income):
+        net_income_text = "positive" if latest_net_income >= 0 else "negative"
+        bullets.append(f"Latest net income is {net_income_text} at {format_money(latest_net_income)}.")
+
+    latest_ebitda = latest_metric_value(metrics_df, "ebitda")
+    if latest_ebitda is not None and not pd.isna(latest_ebitda):
+        bullets.append(f"Latest EBITDA is {format_money(latest_ebitda)}.")
+
+    latest_fcf = latest_metric_value(metrics_df, "free_cash_flow")
+    if latest_fcf is not None and not pd.isna(latest_fcf):
+        fcf_text = "positive" if latest_fcf >= 0 else "negative"
+        bullets.append(f"Free cash flow is {fcf_text} at {format_money(latest_fcf)}.")
+
+    latest_net_cash_debt = latest_metric_value(metrics_df, "net_cash_debt")
+    if latest_net_cash_debt is not None and not pd.isna(latest_net_cash_debt):
+        if latest_net_cash_debt >= 0:
+            bullets.append(f"The balance sheet is in a net cash position of {format_money(latest_net_cash_debt)}.")
+        else:
+            bullets.append(f"The balance sheet is in a net debt position of {format_money(abs(float(latest_net_cash_debt)))}.")
+
+    latest_margin = latest_metric_value(metrics_df, "net_income_margin_pct")
+    prior_margin = _latest_and_prior(metrics_df, "net_income_margin_pct")[1]
+    if latest_margin is not None and prior_margin is not None and not pd.isna(latest_margin) and not pd.isna(prior_margin):
+        margin_delta = float(latest_margin) - float(prior_margin)
+        if margin_delta > 0:
+            bullets.append(f"Net income margin improved versus the prior period by {margin_delta:.1%}.")
+        elif margin_delta < 0:
+            bullets.append(f"Net income margin deteriorated versus the prior period by {abs(margin_delta):.1%}.")
+
+    if is_financial_company:
+        bullets.append(
+            "For financial companies, free cash flow and traditional margin metrics are less useful because lending, deposits, and balance-sheet movements can dominate the statements."
+        )
+
+    if not bullets:
+        bullets.append("Limited financial statement data was available, so the snapshot is constrained.")
+
+    return bullets[:6]
+
+
+def _display_executive_snapshot(metrics_df: pd.DataFrame, is_financial_company: bool) -> None:
+    bullets_html = "".join(
+        f"<li>{bullet}</li>" for bullet in _executive_snapshot(metrics_df, is_financial_company)
+    )
+    st.markdown(
+        f"""
+        <div class="dbr-snapshot">
+            <h3>Executive Snapshot</h3>
+            <ul>{bullets_html}</ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _display_valuation_section(company_info_df: pd.DataFrame) -> None:
+    """
+    Render valuation cards using yfinance info and fast_info data.
+    """
+    info_row = _latest_info_row(company_info_df)
+    valuation_cards = [
+        ("Market Cap", format_money(info_row.get("market_cap") if hasattr(info_row, "get") else None)),
+        ("Enterprise Value", format_money(info_row.get("enterprise_value") if hasattr(info_row, "get") else None)),
+        ("P/S", _format_multiple(info_row.get("price_to_sales") if hasattr(info_row, "get") else None)),
+        ("P/E", _format_plain_number(info_row.get("trailing_pe") if hasattr(info_row, "get") else None)),
+        ("Forward P/E", _format_plain_number(info_row.get("forward_pe") if hasattr(info_row, "get") else None)),
+        ("EV/Revenue", _format_multiple(info_row.get("ev_to_revenue") if hasattr(info_row, "get") else None)),
+        ("EV/EBITDA", _format_multiple(info_row.get("ev_to_ebitda") if hasattr(info_row, "get") else None)),
+        (
+            "Price vs 52W High",
+            _format_price_band_position(
+                info_row.get("current_price") if hasattr(info_row, "get") else None,
+                info_row.get("fifty_two_week_high") if hasattr(info_row, "get") else None,
+                "high",
+            ),
+        ),
+        (
+            "Price vs 52W Low",
+            _format_price_band_position(
+                info_row.get("current_price") if hasattr(info_row, "get") else None,
+                info_row.get("fifty_two_week_low") if hasattr(info_row, "get") else None,
+                "low",
+            ),
+        ),
+    ]
+
+    st.markdown('<div class="dbr-valuation-panel"><h3>Valuation</h3></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    top_row = st.columns(3)
+    for column, (label, value) in zip(top_row, valuation_cards[:3]):
+        _render_kpi_card(column, label, value, "Latest available")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    middle_row = st.columns(3)
+    for column, (label, value) in zip(middle_row, valuation_cards[3:6]):
+        _render_kpi_card(column, label, value, "Latest available")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="dbr-row-gap">', unsafe_allow_html=True)
+    bottom_row = st.columns(3)
+    for column, (label, value) in zip(bottom_row, valuation_cards[6:]):
+        _render_kpi_card(column, label, value, "Latest available")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _score_band_colors(label: str) -> tuple[str, str]:
+    """
+    Return accent colors for the business quality score band.
+    """
+    mapping = {
+        "Excellent": ("#22c55e", "rgba(34, 197, 94, 0.12)"),
+        "Strong": ("#38bdf8", "rgba(56, 189, 248, 0.12)"),
+        "Mixed": ("#f59e0b", "rgba(245, 158, 11, 0.12)"),
+        "Weak": ("#ef4444", "rgba(239, 68, 68, 0.12)"),
+    }
+    return mapping.get(label, ("#94a3b8", "rgba(148, 163, 184, 0.12)"))
+
+
+def _display_business_quality_score(metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
+    """
+    Render the rules-based business quality score.
+    """
+    score_data = build_business_quality_score(metrics_df, company_info_df)
+    score = score_data["score"]
+    label = score_data["label"]
+    strengths = score_data["strengths"]
+    risks = score_data["risks"]
+    explanation = score_data["explanation"]
+    accent_color, accent_bg = _score_band_colors(label)
+
+    st.markdown("### Business Quality Score")
+    score_col, summary_col = st.columns([1, 2])
+    with score_col:
+        st.markdown(
+            f"""
+            <div class="dbr-card" style="border-color: {accent_color}; background: linear-gradient(135deg, {accent_bg}, rgba(15, 23, 42, 0.92));">
+                <div class="dbr-card-label">Business Quality Score</div>
+                <div class="dbr-card-value" style="color: {accent_color};">{score}/100</div>
+                <div class="dbr-card-sub" style="color: {accent_color};">{label}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with summary_col:
+        st.write(f"**Overall:** {score}/100 ({label})")
+        st.write(explanation)
+        st.markdown(
+            '<div class="dbr-score-note">This score is a rules-based research aid, not a buy/sell recommendation.</div>',
+            unsafe_allow_html=True,
+        )
+
+    strength_col, risk_col = st.columns(2)
+    with strength_col:
+        st.markdown("#### Strengths")
+        for item in strengths:
+            st.write(f"- {item}")
+    with risk_col:
+        st.markdown("#### Risks")
+        for item in risks:
+            st.write(f"- {item}")
+        st.markdown(
+            f'<div class="dbr-muted-note">{metrics_df.attrs.get("ebitda_note", "EBITDA is often unavailable or less meaningful for banks, lenders, insurers, and other financial companies.")}</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def _display_narrative_tab(metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
+    """
+    Render rules-based trend, narrative, and signals sections.
+    """
+    package = build_narrative_package(metrics_df, company_info_df)
+    trends = package["trends"]
+    what_changed = package["what_changed"]
+    narrative = package["narrative"]
+    signals = package["signals"]
+
+    st.markdown("### Trend Detection")
+    trend_col_1, trend_col_2, trend_col_3, trend_col_4 = st.columns(4)
+    _render_flag_card(trend_col_1, "Revenue Growth", str(trends["revenue_growth_trend"]).title(), "Latest trend")
+    _render_flag_card(trend_col_2, "Net Income", str(trends["net_income_trend"]).title(), "Latest trend")
+    _render_flag_card(trend_col_3, "Free Cash Flow", str(trends["free_cash_flow_trend"]).title(), "Latest trend")
+    _render_flag_card(trend_col_4, "Margins", str(trends["margin_trend"]).title(), "Latest trend")
+
+    _section_spacer(0.35)
+    st.markdown("### What Changed vs Prior Period")
+    for bullet in what_changed:
+        st.write(f"- {bullet}")
+
+    _section_spacer(0.35)
+    st.markdown("### Investment Narrative")
+    st.write(f"**Current read:** {narrative['current_read']}")
+    st.write("**What improved:**")
+    for item in narrative["what_improved"]:
+        st.write(f"- {item}")
+    st.write("**What weakened:**")
+    for item in narrative["what_weakened"]:
+        st.write(f"- {item}")
+    st.write(f"**Key tension:** {narrative['key_tension']}")
+    st.write("**What to watch next:**")
+    for item in narrative["what_to_watch_next"]:
+        st.write(f"- {item}")
+
+    _section_spacer(0.35)
+    st.markdown("### Signals")
+    bullish_col, bearish_col, neutral_col = st.columns(3)
+    with bullish_col:
+        st.markdown("#### Bullish signals")
+        for item in signals["bullish"]:
+            st.write(f"- {item}")
+    with bearish_col:
+        st.markdown("#### Bearish signals")
+        for item in signals["bearish"]:
+            st.write(f"- {item}")
+    with neutral_col:
+        st.markdown("#### Neutral / context signals")
+        for item in signals["neutral"]:
+            st.write(f"- {item}")
+
+
+def _build_comparison_row(
+    ticker: str,
+    company_info_df: pd.DataFrame,
+    metrics_df: pd.DataFrame,
+) -> dict[str, Any]:
+    """
+    Build one comparison row using the latest available period.
+    """
+    info_row = _latest_info_row(company_info_df)
+    quality_score = build_business_quality_score(metrics_df, company_info_df)
+
+    return {
+        "Ticker": ticker,
+        "Company Name": safe_string(info_row.get("name") if hasattr(info_row, "get") else None, ticker),
+        "Sector": safe_string(info_row.get("sector") if hasattr(info_row, "get") else None),
+        "Market Cap": info_row.get("market_cap") if hasattr(info_row, "get") else None,
+        "Revenue": latest_metric_value(metrics_df, "revenue"),
+        "Revenue Growth": latest_metric_value(metrics_df, "revenue_growth_pct"),
+        "EBITDA": latest_metric_value(metrics_df, "ebitda"),
+        "EBITDA Margin": latest_metric_value(metrics_df, "ebitda_margin_pct"),
+        "Net Income Margin": latest_metric_value(metrics_df, "net_income_margin_pct"),
+        "Free Cash Flow": latest_metric_value(metrics_df, "free_cash_flow"),
+        "Cash": latest_metric_value(metrics_df, "cash_and_equivalents"),
+        "Debt": latest_metric_value(metrics_df, "total_debt"),
+        "Net Cash / Debt": latest_metric_value(metrics_df, "net_cash_debt"),
+        "P/S": info_row.get("price_to_sales") if hasattr(info_row, "get") else None,
+        "P/E": info_row.get("trailing_pe") if hasattr(info_row, "get") else None,
+        "EV/Revenue": info_row.get("ev_to_revenue") if hasattr(info_row, "get") else None,
+        "Business Quality Score": quality_score["score"],
+    }
+
+
+def _format_comparison_table(comparison_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Format the comparison dataframe for display.
+    """
+    if not isinstance(comparison_df, pd.DataFrame) or comparison_df.empty:
+        return pd.DataFrame()
+
+    display_df = comparison_df.copy()
+    money_columns = [
+        "Market Cap",
+        "Revenue",
+        "EBITDA",
+        "Free Cash Flow",
+        "Cash",
+        "Debt",
+        "Net Cash / Debt",
+    ]
+    percent_columns = [
+        "Revenue Growth",
+        "EBITDA Margin",
+        "Net Income Margin",
+    ]
+    multiple_columns = ["P/S", "EV/Revenue"]
+    plain_number_columns = ["P/E", "Business Quality Score"]
+
+    for column in money_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(format_money)
+    for column in percent_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(_format_compare_percent)
+    for column in multiple_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(_format_multiple)
+    for column in plain_number_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(_format_plain_number)
+
+    display_df = display_df.where(pd.notna(display_df), "N/A")
+    return display_df
+
+
+def _best_row_by_numeric(comparison_df: pd.DataFrame, column: str, ascending: bool = False) -> str:
+    """
+    Return a simple winner string for the comparison summary.
+    """
+    if column not in comparison_df.columns:
+        return "N/A"
+    numeric_series = pd.to_numeric(comparison_df[column], errors="coerce")
+    valid_df = comparison_df.loc[numeric_series.notna()].copy()
+    if valid_df.empty:
+        return "N/A"
+    valid_df["_sort"] = pd.to_numeric(valid_df[column], errors="coerce")
+    best_row = valid_df.sort_values("_sort", ascending=ascending).iloc[0]
+    return f"{best_row['Ticker']} ({best_row['Company Name']})"
+
+
+def _display_best_worst_section(comparison_df: pd.DataFrame) -> None:
+    """
+    Render a simple best/worst ranking section for comparison mode.
+    """
+    st.markdown("## Best / Worst")
+    left_col, right_col = st.columns(2)
+    with left_col:
+        st.write(f"- Best growth: {_best_row_by_numeric(comparison_df, 'Revenue Growth')}")
+        st.write(f"- Best profitability: {_best_row_by_numeric(comparison_df, 'Net Income Margin')}")
+        st.write(f"- Best balance sheet: {_best_row_by_numeric(comparison_df, 'Net Cash / Debt')}")
+    with right_col:
+        st.write(f"- Cheapest valuation by P/S: {_best_row_by_numeric(comparison_df, 'P/S', ascending=True)}")
+        st.write(f"- Highest score: {_best_row_by_numeric(comparison_df, 'Business Quality Score')}")
+        st.write(f"- Most expensive by P/S: {_best_row_by_numeric(comparison_df, 'P/S')}")
+
+
+def _display_comparison_summary(comparison_df: pd.DataFrame) -> None:
+    """
+    Render a simple comparison summary section.
+    """
+    st.markdown("## Comparison Summary")
+    st.write(f"- Highest revenue growth: {_best_row_by_numeric(comparison_df, 'Revenue Growth')}")
+    st.write(f"- Highest net income margin: {_best_row_by_numeric(comparison_df, 'Net Income Margin')}")
+    st.write(f"- Strongest balance sheet: {_best_row_by_numeric(comparison_df, 'Net Cash / Debt')}")
+    st.write(f"- Lowest P/S: {_best_row_by_numeric(comparison_df, 'P/S', ascending=True)}")
+    st.write(f"- Highest business quality score: {_best_row_by_numeric(comparison_df, 'Business Quality Score')}")
+
+
+def _display_comparison_charts(comparison_df: pd.DataFrame) -> None:
+    """
+    Render comparison-mode charts below the summary.
+    """
+    st.markdown("## Comparison Charts")
+    chart_specs = [
+        ("Revenue Growth", "Revenue Growth by Ticker", "Revenue Growth", ".0%", "#38bdf8", None),
+        ("Net Income Margin", "Net Income Margin by Ticker", "Net Income Margin", ".0%", "#22c55e", None),
+        ("Free Cash Flow", "Free Cash Flow by Ticker", "Free Cash Flow", ",.2s", "#f59e0b", None),
+        ("Net Cash / Debt", "Net Cash / Debt by Ticker", "Net Cash / Debt", ",.2s", "#8b5cf6", None),
+        ("P/S", "P/S Multiple by Ticker", "P/S", ".2f", "#ef4444", None),
+        ("Business Quality Score", "Business Quality Score by Ticker", "Score", None, "#38bdf8", [0, 100]),
+    ]
+
+    for first_spec, second_spec in zip(chart_specs[::2], chart_specs[1::2]):
+        left_col, right_col = st.columns(2)
+        with left_col:
+            fig = create_comparison_bar_chart(
+                comparison_df,
+                value_column=first_spec[0],
+                title=first_spec[1],
+                yaxis_title=first_spec[2],
+                tickformat=first_spec[3],
+                color=first_spec[4],
+                yaxis_range=first_spec[5],
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        with right_col:
+            fig = create_comparison_bar_chart(
+                comparison_df,
+                value_column=second_spec[0],
+                title=second_spec[1],
+                yaxis_title=second_spec[2],
+                tickformat=second_spec[3],
+                color=second_spec[4],
+                yaxis_range=second_spec[5],
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+
+def _run_comparison_analysis(
+    tickers: list[str],
+    financial_period: str,
+    price_timeframe: str,
+) -> None:
+    """
+    Run comparison mode across multiple companies using the latest available period for each.
+    """
+    comparison_rows: list[dict[str, Any]] = []
+    failed_tickers: list[str] = []
+
+    with st.spinner(f"Running comparison for {', '.join(tickers)}..."):
+        for ticker in tickers:
+            try:
+                data = _cached_financial_data(ticker, financial_period, price_timeframe)
+                company_info_df = data.get("company_info")
+                metrics_df = calculate_financial_metrics(
+                    income_statement=data.get("income_statement"),
+                    balance_sheet=data.get("balance_sheet"),
+                    cash_flow_statement=data.get("cash_flow_statement"),
+                    sector=(
+                        company_info_df.iloc[0].get("sector")
+                        if isinstance(company_info_df, pd.DataFrame) and not company_info_df.empty
+                        else None
+                    ),
+                )
+                comparison_rows.append(_build_comparison_row(ticker, company_info_df, metrics_df))
+            except Exception:
+                failed_tickers.append(ticker)
+
+    if not comparison_rows:
+        st.error("Comparison data could not be loaded for the selected tickers.")
+        return
+
+    comparison_df = pd.DataFrame(comparison_rows)
+    st.markdown('<div class="dbr-compare-panel">', unsafe_allow_html=True)
+    _display_comparison_summary(comparison_df)
+    st.markdown("</div>", unsafe_allow_html=True)
+    _section_spacer(0.35)
+    st.markdown('<div class="dbr-compare-panel">', unsafe_allow_html=True)
+    _display_best_worst_section(comparison_df)
+    st.markdown("</div>", unsafe_allow_html=True)
+    _section_spacer(0.35)
+    _display_comparison_charts(comparison_df)
+    _section_spacer(0.35)
+    st.markdown("## Comparison Table")
+    st.dataframe(_format_comparison_table(comparison_df), use_container_width=True, hide_index=True)
+
+    if failed_tickers:
+        st.warning(f"Some tickers could not be loaded: {', '.join(failed_tickers)}")
+
+
+def _display_charts(charts: dict[str, Any], metrics_df: pd.DataFrame, company_info_df: pd.DataFrame) -> None:
+    """
+    Render non-empty charts inside Streamlit tabs.
+    """
+    if not charts:
+        st.info("No chartable data is available for this ticker.")
+        return
+
+    overview_tab, profitability_tab, cash_tab, stock_tab, quality_tab, narrative_tab, metrics_tab = st.tabs(
+        ["Overview", "Profitability", "Cash Flow & Balance Sheet", "Stock Price", "Quality & Valuation", "Narrative", "Metrics Table"]
+    )
+
+    with overview_tab:
+        if charts.get("revenue_chart") is not None:
+            st.plotly_chart(charts["revenue_chart"], use_container_width=True)
+        else:
+            st.info("Revenue chart data is unavailable.")
+
+    with profitability_tab:
+        if charts.get("margin_chart") is not None:
+            st.plotly_chart(charts["margin_chart"], use_container_width=True)
+        if charts.get("income_fcf_chart") is not None:
+            st.plotly_chart(charts["income_fcf_chart"], use_container_width=True)
+        if charts.get("margin_chart") is None and charts.get("income_fcf_chart") is None:
+            st.info("Profitability chart data is unavailable.")
+
+    with cash_tab:
+        if charts.get("cash_debt_chart") is not None:
+            st.plotly_chart(charts["cash_debt_chart"], use_container_width=True)
+        if charts.get("cash_debt_chart") is None:
+            st.info("Cash flow and balance sheet chart data is unavailable.")
+
+    with stock_tab:
+        if charts.get("stock_price_chart") is not None:
+            st.plotly_chart(charts["stock_price_chart"], use_container_width=True)
+        else:
+            st.info("Stock price data is unavailable.")
+
+    with quality_tab:
+        _display_business_quality_score(metrics_df, company_info_df)
+        _display_valuation_section(company_info_df)
+
+    with narrative_tab:
+        _display_narrative_tab(metrics_df, company_info_df)
+
+    with metrics_tab:
+        _display_metrics_table(metrics_df)
+
+
+def _format_table_money(value: Any) -> str:
+    return format_money(value)
+
+
+def _format_table_percent(value: Any) -> str:
+    return format_percent(value)
+
+
+def _prepare_metrics_table(metrics_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Build the compact metrics table shown in Streamlit.
+    """
+    if not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty:
+        return pd.DataFrame()
+
+    column_map = {
+        "Period": "Period",
+        "revenue": "Revenue",
+        "revenue_growth_pct": "Revenue Growth",
+        "ebitda": "EBITDA",
+        "ebitda_margin_pct": "EBITDA Margin",
+        "gross_margin_pct": "Gross Margin",
+        "operating_margin_pct": "Operating Margin",
+        "net_income": "Net Income",
+        "net_income_margin_pct": "Net Income Margin",
+        "free_cash_flow": "Free Cash Flow",
+        "cash_and_equivalents": "Cash",
+        "total_debt": "Debt",
+        "net_cash_debt": "Net Cash / Debt",
+    }
+
+    available_columns = [column for column in column_map if column in metrics_df.columns]
+    if not available_columns:
+        return pd.DataFrame()
+
+    display_df = metrics_df[available_columns].copy().rename(columns=column_map)
+
+    money_columns = [
+        "Revenue",
+        "EBITDA",
+        "Net Income",
+        "Free Cash Flow",
+        "Cash",
+        "Debt",
+        "Net Cash / Debt",
+    ]
+    percent_columns = [
+        "Revenue Growth",
+        "EBITDA Margin",
+        "Gross Margin",
+        "Operating Margin",
+        "Net Income Margin",
+    ]
+
+    if "Period" in display_df.columns:
+        display_df["Period"] = display_df["Period"].astype("string").fillna("N/A")
+
+    for column in money_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(_format_table_money)
+
+    for column in percent_columns:
+        if column in display_df.columns:
+            display_df[column] = display_df[column].apply(_format_table_percent)
+
+    display_df = display_df.where(pd.notna(display_df), "N/A")
+    return display_df
+
+
+def _display_metrics_table(metrics_df: pd.DataFrame) -> None:
+    display_df = _prepare_metrics_table(metrics_df)
+    if display_df.empty:
+        st.info("No metrics are available for this ticker.")
+        return
+
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+
+def _limit_metrics_periods(metrics_df: pd.DataFrame, limit_label: str) -> pd.DataFrame:
+    """
+    Limit the metrics view to the latest N periods when requested.
+    """
+    if not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty:
+        return metrics_df
+
+    limit_map = {
+        "Latest 4": 4,
+        "Latest 8": 8,
+        "Latest 12": 12,
+        "All": None,
+    }
+    limit = limit_map.get(limit_label)
+    if limit is None:
+        return metrics_df.copy()
+    return metrics_df.tail(limit).reset_index(drop=True)
+
+
+def _render_data_warnings(metrics_df: pd.DataFrame, period_type: str) -> None:
+    """
+    Render non-fatal data warnings without breaking the dashboard.
+    """
+    warnings_list = metrics_df.attrs.get("warnings", []) if isinstance(metrics_df, pd.DataFrame) else []
+    for message in warnings_list:
+        st.warning(message)
+
+    if period_type == "quarterly" and (not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty):
+        st.warning(
+            "Quarterly financial statement data was not available for this ticker. Some companies, ETFs, funds, or unsupported symbols may not expose quarterly statements through yfinance."
+        )
+    elif not isinstance(metrics_df, pd.DataFrame) or metrics_df.empty:
+        st.warning(
+            "Financial statement data was not available for this ticker. This may happen for ETFs, funds, or unsupported symbols."
+        )
+
+
+def _latest_statement_date(data: dict[str, pd.DataFrame]) -> pd.Timestamp | None:
+    """
+    Return the latest statement date available across the loaded financial statements.
+    """
+    dates: list[pd.Timestamp] = []
+    for key in ("income_statement", "balance_sheet", "cash_flow_statement"):
+        frame = data.get(key, pd.DataFrame())
+        if isinstance(frame, pd.DataFrame) and not frame.empty and "Date" in frame.columns:
+            series = pd.to_datetime(frame["Date"], errors="coerce").dropna()
+            if not series.empty:
+                dates.append(series.iloc[-1])
+    if not dates:
+        return None
+    return max(dates)
+
+
+def _display_data_availability(data: dict[str, pd.DataFrame], period_type: str) -> None:
+    """
+    Render a compact diagnostic expander for data availability.
+    """
+    summary = summarize_data_availability(data, period_type=period_type)
+    latest_statement_date = _latest_statement_date(data)
+    latest_price_date = summary.get("latest_stock_price_date", "N/A")
+
+    with st.expander("Data availability"):
+        st.write(f"Latest financial period available: {summary.get('latest_financial_period', 'N/A')}")
+        st.write(f"Number of financial periods loaded: {summary.get('financial_periods_loaded', 0)}")
+        st.write(f"Selected financial period type: {summary.get('selected_period_type', 'N/A').title()}")
+        st.write(f"Stock price latest date: {latest_price_date}")
+        st.write(f"{summary.get('selected_period_type', 'N/A').title()} income statement returned: {'Yes' if summary.get('income_statement_available') else 'No'}")
+        st.write(f"{summary.get('selected_period_type', 'N/A').title()} balance sheet returned: {'Yes' if summary.get('balance_sheet_available') else 'No'}")
+        st.write(f"{summary.get('selected_period_type', 'N/A').title()} cash flow returned: {'Yes' if summary.get('cash_flow_statement_available') else 'No'}")
+        st.markdown(
+            '<div class="dbr-muted-note">EBITDA is often unavailable or less meaningful for banks, lenders, insurers, and other financial companies.</div>',
+            unsafe_allow_html=True,
+        )
+
+    if latest_statement_date is not None and latest_price_date != "N/A":
+        latest_price_ts = pd.to_datetime(latest_price_date, errors="coerce")
+        if pd.notna(latest_price_ts) and latest_price_ts.year > latest_statement_date.year:
+            st.info(
+                "Price data may be more current than financial statement data. This usually means the latest quarter has not been loaded by the source yet."
+            )
+
+
+def _run_analysis(
+    ticker: str,
+    financial_period: str,
+    price_timeframe: str,
+    display_periods: str,
+) -> None:
+    """
+    Execute the end-to-end analysis flow and render results in the app.
+    """
+    with st.spinner(f"Running analysis for {ticker.upper()}..."):
+        data = _cached_financial_data(ticker, financial_period, price_timeframe)
+        metrics_df_all = calculate_financial_metrics(
+            income_statement=data.get("income_statement"),
+            balance_sheet=data.get("balance_sheet"),
+            cash_flow_statement=data.get("cash_flow_statement"),
+            sector=(
+                data.get("company_info").iloc[0].get("sector")
+                if isinstance(data.get("company_info"), pd.DataFrame) and not data.get("company_info").empty
+                else None
+            ),
+        )
+        metrics_df = _limit_metrics_periods(metrics_df_all, display_periods)
+        metrics_df.attrs["warnings"] = metrics_df_all.attrs.get("warnings", [])
+        charts = create_all_charts(
+            metrics_df=metrics_df,
+            price_history_df=data.get("price_history"),
+            ticker=ticker,
+            price_period=price_timeframe,
+        )
+
+    company_info_df = data.get("company_info")
+    is_financial = _is_financial_company(company_info_df)
+    _display_company_header(ticker, company_info_df, metrics_df)
+    _section_spacer(0.2)
+    _display_kpis(metrics_df)
+    _section_spacer(0.45)
+    _display_quality_flags(metrics_df)
+    _section_spacer(0.35)
+    _render_data_warnings(metrics_df, financial_period.lower())
+    _display_data_availability(data, financial_period.lower())
+
+    if is_financial:
+        st.warning(
+            "Note: For financial companies, free cash flow and traditional margin metrics can be less useful because cash flow statements reflect lending, deposits, and balance-sheet activity."
+        )
+
+    _section_spacer(0.35)
+    _display_executive_snapshot(metrics_df, is_financial)
+    _section_spacer(0.45)
+    _display_charts(charts, metrics_df, company_info_df)
+
+
+def main() -> None:
+    """
+    Streamlit entrypoint for the DBR Research Terminal UI.
+    """
+    _configure_page()
+
+    st.markdown(
+        """
+        <div class="dbr-hero">
+            <div class="dbr-eyebrow">Rules-Based Equity Research</div>
+            <h1 class="dbr-title">DBR Research Terminal</h1>
+            <p class="dbr-subtitle">Interactive public-market research built on transparent rules, financial statements, valuation data, and market context.</p>
+            <div class="dbr-hero-copy">
+                Analyze a single company in depth or compare multiple businesses side by side. The app combines Yahoo Finance data with deterministic scoring, trend detection, narrative analysis, and visual comparison tools.
+            </div>
+            <div class="dbr-mode-guide">
+                <div class="dbr-mode-box">
+                    <strong>Single Company</strong>
+                    Deep-dive into one ticker with charts, quality scoring, narrative analysis, and valuation context.
+                </div>
+                <div class="dbr-mode-box">
+                    <strong>Compare Companies</strong>
+                    Rank multiple tickers using the latest available financial period, valuation inputs, and business quality scoring.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _section_spacer(0.35)
+    mode_col, input_col, period_col, timeframe_col, count_col = st.columns([1.3, 2.4, 1.2, 1.2, 1.2])
+    with mode_col:
+        analysis_mode = st.selectbox("Mode", ["Single Company", "Compare Companies"], index=0)
+    with input_col:
+        if analysis_mode == "Single Company":
+            ticker = st.text_input(
+                "Ticker Symbol",
+                value="SOFI",
+                max_chars=15,
+                help="Enter a public company ticker. ETFs may not have financial statements.",
+            ).strip().upper()
+            comparison_input = ""
+        else:
+            comparison_input = st.text_input(
+                "Ticker Symbols",
+                value="SOFI, HOOD, AFRM",
+                help="Enter comma-separated public company tickers.",
+            ).strip().upper()
+            ticker = ""
+    with period_col:
+        financial_period = st.selectbox("Financial Period", ["Annual", "Quarterly"], index=0)
+    with timeframe_col:
+        price_timeframe = st.selectbox("Stock Price Timeframe", ["6mo", "1y", "2y", "5y", "max"], index=3)
+    with count_col:
+        display_periods = st.selectbox("Financial Periods Shown", ["Latest 4", "Latest 8", "Latest 12", "All"], index=1)
+
+    run_clicked = st.button("Run Analysis", type="primary", use_container_width=False)
+
+    if run_clicked:
+        try:
+            if analysis_mode == "Single Company":
+                if not ticker:
+                    st.error("Enter a ticker symbol before running analysis.")
+                    return
+                _run_analysis(
+                    ticker=ticker,
+                    financial_period=financial_period,
+                    price_timeframe=price_timeframe,
+                    display_periods=display_periods,
+                )
+            else:
+                tickers = _parse_ticker_list(comparison_input)
+                if not tickers:
+                    st.error("Enter at least one ticker for comparison.")
+                    return
+                _run_comparison_analysis(
+                    tickers=tickers,
+                    financial_period=financial_period,
+                    price_timeframe=price_timeframe,
+                )
+        except Exception as exc:
+            st.error(f"Analysis failed for {ticker}: {exc}")
+    else:
+        st.info("Enter a ticker symbol and click Run Analysis.")
+
+    st.markdown(
+        """
+        <div class="dbr-footer">
+            DBR Research Terminal is a rules-based research aid. Data is sourced from Yahoo Finance/yfinance and may be delayed or incomplete. Not investment advice.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+if __name__ == "__main__":
+    main()
