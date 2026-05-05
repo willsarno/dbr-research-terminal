@@ -45,175 +45,202 @@ def _configure_page() -> None:
     st.markdown(
         """
         <style>
+        :root {
+            --dbr-bg: #020617;
+            --dbr-surface: #0b1220;
+            --dbr-border: #1e293b;
+            --dbr-text: #e2e8f0;
+            --dbr-muted: #94a3b8;
+            --dbr-accent: #3b82f6;
+            --dbr-space-section: 2rem;
+            --dbr-space-card: 1rem;
+            --dbr-card-padding-y: 1.15rem;
+            --dbr-card-padding-x: 1.2rem;
+        }
         .stApp {
-            background: #020617;
-            color: #e2e8f0;
+            background: var(--dbr-bg);
+            color: var(--dbr-text);
         }
         .block-container {
-            max-width: 1320px;
-            padding-top: 1rem;
-            padding-bottom: 2.1rem;
+            max-width: 1280px;
+            padding-top: 1.15rem;
+            padding-bottom: 2.35rem;
         }
         section[data-testid="stSidebar"] {
-            background: #020617;
-            border-right: 1px solid #1e293b;
+            background: var(--dbr-bg);
+            border-right: 1px solid var(--dbr-border);
         }
         .dbr-sidebar-brand {
-            padding: 0.2rem 0 0.75rem 0;
+            padding: 0.1rem 0 0.65rem 0;
         }
         .dbr-sidebar-kicker {
-            color: #94a3b8;
+            color: var(--dbr-muted);
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            font-size: 0.72rem;
-            margin-bottom: 0.35rem;
+            font-size: 0.7rem;
+            margin-bottom: 0.25rem;
         }
         .dbr-sidebar-title {
-            color: #e2e8f0;
+            color: var(--dbr-text);
             font-weight: 700;
-            font-size: 1.05rem;
-            margin-bottom: 0.3rem;
+            font-size: 1rem;
+            margin-bottom: 0.22rem;
         }
         .dbr-sidebar-copy {
-            color: #94a3b8;
+            color: var(--dbr-muted);
             font-size: 0.84rem;
-            line-height: 1.5;
+            line-height: 1.55;
         }
         .dbr-sidebar-note {
-            color: #94a3b8;
-            font-size: 0.78rem;
+            color: var(--dbr-muted);
+            font-size: 0.77rem;
             line-height: 1.45;
             padding-top: 0.65rem;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid var(--dbr-border);
             margin-top: 0.7rem;
         }
         .dbr-hero {
-            padding: 1.35rem 1.45rem;
-            border: 1px solid #1e293b;
+            padding: 1.55rem 1.7rem;
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            background: #0b1220;
-            margin-bottom: 1rem;
+            background: var(--dbr-surface);
+            margin-bottom: 1.4rem;
         }
         .dbr-eyebrow {
-            color: #94a3b8;
+            color: var(--dbr-muted);
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            font-size: 0.78rem;
-            margin-bottom: 0.45rem;
+            font-size: 0.74rem;
+            margin-bottom: 0.5rem;
         }
         .dbr-title {
-            font-size: 2.05rem;
+            font-size: 2.45rem;
             font-weight: 700;
             margin: 0;
-            color: #e2e8f0;
+            color: var(--dbr-text);
+            line-height: 1.08;
         }
         .dbr-subtitle {
-            color: #94a3b8;
-            margin-top: 0.5rem;
+            color: var(--dbr-muted);
+            margin-top: 0.65rem;
             margin-bottom: 0;
+            font-size: 0.97rem;
+            line-height: 1.55;
         }
         .dbr-hero-copy {
-            color: #94a3b8;
-            margin-top: 0.55rem;
+            color: var(--dbr-muted);
+            margin-top: 0.85rem;
             max-width: 860px;
-            line-height: 1.5;
+            line-height: 1.58;
+            font-size: 0.93rem;
         }
         .dbr-mode-guide {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 0.75rem;
-            margin-top: 0.8rem;
+            gap: 1rem;
+            margin-top: 1rem;
         }
         .dbr-mode-box,
         .dbr-action-card {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 0.8rem 0.9rem;
-            min-height: 128px;
+            padding: 1.1rem 1.15rem;
+            min-height: 138px;
         }
         .dbr-mode-box strong,
         .dbr-action-card strong {
             display: block;
-            color: #e2e8f0;
-            margin-bottom: 0.35rem;
-            font-size: 1.02rem;
+            color: var(--dbr-text);
+            margin-bottom: 0.45rem;
+            font-size: 1rem;
         }
         .dbr-action-card p,
         .dbr-mode-box p {
-            color: #94a3b8;
+            color: var(--dbr-muted);
             margin: 0;
             line-height: 1.55;
+            font-size: 0.92rem;
         }
         .dbr-tagline {
-            color: #94a3b8;
-            margin-top: 0.65rem;
+            color: var(--dbr-muted);
+            margin-top: 0.8rem;
             font-size: 0.92rem;
             max-width: 820px;
         }
+        .dbr-home-note {
+            color: var(--dbr-muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin: 0.1rem 0 var(--dbr-space-section) 0;
+        }
         .dbr-page-header {
-            margin-bottom: 0.6rem;
+            margin-bottom: 1rem;
         }
         .dbr-page-header h2 {
-            margin: 0 0 0.28rem 0;
-            color: #e2e8f0;
-            font-size: 1.65rem;
+            margin: 0 0 0.3rem 0;
+            color: var(--dbr-text);
+            font-size: 1.95rem;
+            font-weight: 700;
+            line-height: 1.12;
         }
         .dbr-page-header p {
             margin: 0;
-            color: #94a3b8;
+            color: var(--dbr-muted);
             max-width: 780px;
-            line-height: 1.45;
+            line-height: 1.55;
+            font-size: 0.94rem;
         }
         .dbr-profile-card {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 0.85rem 0.95rem 0.8rem;
-            margin-bottom: 0.7rem;
+            padding: 1rem 1.1rem 0.95rem;
+            margin-bottom: 1rem;
         }
         .dbr-profile-title {
             margin: 0;
-            color: #e2e8f0;
-            font-size: 1.28rem;
-            font-weight: 650;
-            line-height: 1.2;
+            color: var(--dbr-text);
+            font-size: 1.18rem;
+            font-weight: 700;
+            line-height: 1.18;
         }
         .dbr-profile-subtitle {
-            color: #94a3b8;
-            margin: 0.22rem 0 0.65rem 0;
-            font-size: 0.84rem;
+            color: var(--dbr-muted);
+            margin: 0.28rem 0 0.78rem 0;
+            font-size: 0.88rem;
+            line-height: 1.5;
         }
         .dbr-profile-divider {
             height: 1px;
-            background: #1e293b;
-            margin: 0 0 0.72rem 0;
+            background: var(--dbr-border);
+            margin: 0 0 0.85rem 0;
         }
         .dbr-toolbar-label {
-            margin: 0 0 0.35rem 0;
-            color: #94a3b8;
-            font-size: 0.74rem;
+            margin: 0 0 0.55rem 0;
+            color: var(--dbr-muted);
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
         .dbr-settings-toolbar {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
-            margin-bottom: 0.55rem;
+            gap: 0.85rem;
+            margin-bottom: 1.3rem;
         }
         .dbr-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin: 10px 0 16px 0;
+            gap: 16px;
+            margin: 0.55rem 0 1.5rem 0;
         }
         .dbr-card {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 10px 12px;
-            min-height: auto;
+            padding: var(--dbr-card-padding-y) var(--dbr-card-padding-x);
+            min-height: 106px;
             position: relative;
             overflow: hidden;
         }
@@ -249,83 +276,85 @@ def _configure_page() -> None:
             background: #64748b;
         }
         .dbr-card-label {
-            color: #94a3b8;
-            font-size: 0.77rem;
-            margin-bottom: 0.32rem;
+            color: var(--dbr-muted);
+            font-size: 0.72rem;
+            margin-bottom: 0.45rem;
             text-transform: uppercase;
-            letter-spacing: 0.09em;
+            letter-spacing: 0.08em;
         }
         .dbr-card-value {
-            color: #e2e8f0;
-            font-size: 1.35rem;
+            color: var(--dbr-text);
+            font-size: 1.52rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.16;
         }
         .dbr-card-sub {
-            color: #94a3b8;
-            font-size: 0.78rem;
-            margin-top: 0.2rem;
-            line-height: 1.35;
+            color: var(--dbr-muted);
+            font-size: 0.83rem;
+            margin-top: 0.32rem;
+            line-height: 1.48;
         }
         .dbr-flag {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 0.65rem 0.75rem;
-            min-height: 74px;
+            padding: 0.95rem 1rem;
+            min-height: 96px;
             position: relative;
             overflow: hidden;
         }
         .dbr-flag-label {
-            color: #94a3b8;
-            font-size: 0.74rem;
+            color: var(--dbr-muted);
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.42rem;
         }
         .dbr-flag-value {
-            color: #e2e8f0;
+            color: var(--dbr-text);
             font-size: 1.02rem;
             font-weight: 700;
         }
         .dbr-flag-sub {
-            color: #94a3b8;
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
+            color: var(--dbr-muted);
+            font-size: 0.83rem;
+            margin-top: 0.3rem;
+            line-height: 1.45;
         }
         .dbr-section-header {
-            margin: 0.15rem 0 0.45rem 0;
+            margin: 0 0 0.75rem 0;
         }
         .dbr-section-header h3 {
             margin: 0;
-            color: #e2e8f0;
-            font-size: 0.98rem;
-            font-weight: 600;
+            color: var(--dbr-text);
+            font-size: 1.28rem;
+            font-weight: 650;
+            line-height: 1.2;
         }
         .dbr-section-copy {
-            color: #94a3b8;
-            font-size: 0.82rem;
-            line-height: 1.35;
-            margin: 0.18rem 0 0 0;
+            color: var(--dbr-muted);
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0.24rem 0 0 0;
         }
         .dbr-section-title {
-            margin: 0 0 0.55rem 0;
-            color: #e2e8f0;
-            font-size: 1.02rem;
+            margin: 0 0 0.75rem 0;
+            color: var(--dbr-text);
+            font-size: 1.15rem;
         }
         .dbr-snapshot {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 0.56rem 0.72rem;
+            padding: 0.9rem 1rem;
             margin-top: 0.45rem;
-            margin-bottom: 0.45rem;
+            margin-bottom: 1rem;
         }
         .dbr-snapshot h3 {
             margin-top: 0;
-            margin-bottom: 0.3rem;
-            color: #e2e8f0;
-            font-size: 0.94rem;
+            margin-bottom: 0.4rem;
+            color: var(--dbr-text);
+            font-size: 1rem;
         }
         .dbr-snapshot ul {
             margin: 0;
@@ -333,101 +362,106 @@ def _configure_page() -> None:
             color: #dbe4f0;
         }
         .dbr-snapshot li {
-            margin-bottom: 0.18rem;
-            font-size: 0.8rem;
-            line-height: 1.35;
+            margin-bottom: 0.28rem;
+            font-size: 0.88rem;
+            line-height: 1.5;
         }
         .dbr-summary-strip {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 10px;
-            margin: 10px 0 14px 0;
+            gap: 16px;
+            margin: 0.35rem 0 1rem 0;
         }
         .dbr-insight {
             background: #111827;
             border-left: 2px solid #3b82f6;
             border-radius: 8px;
-            padding: 10px 12px;
-            color: #e2e8f0;
-            font-size: 0.82rem;
-            line-height: 1.45;
-            margin: 8px 0 12px 0;
+            padding: 0.82rem 0.95rem;
+            color: var(--dbr-text);
+            font-size: 0.88rem;
+            line-height: 1.52;
+            margin: 0.25rem 0 1rem 0;
         }
         .dbr-insight strong {
-            color: #94a3b8;
-            font-size: 0.74rem;
+            color: var(--dbr-muted);
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             display: block;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.26rem;
         }
         .dbr-inline-alert {
             background: #1f2937;
             border-left: 2px solid #d97706;
             border-radius: 8px;
-            padding: 10px 12px;
-            color: #94a3b8;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            margin: 8px 0 12px 0;
+            padding: 0.8rem 0.95rem;
+            color: var(--dbr-muted);
+            font-size: 0.86rem;
+            line-height: 1.5;
+            margin: 0.25rem 0 1rem 0;
         }
         .dbr-score-note {
-            color: #94a3b8;
-            font-size: 0.82rem;
-            margin-top: 0.5rem;
+            color: var(--dbr-muted);
+            font-size: 0.84rem;
+            margin-top: 0.6rem;
+            line-height: 1.5;
         }
         .dbr-muted-note {
-            color: #94a3b8;
-            font-size: 0.82rem;
-            margin-top: 0.5rem;
+            color: var(--dbr-muted);
+            font-size: 0.84rem;
+            margin-top: 0.6rem;
+            line-height: 1.5;
         }
         .dbr-valuation-panel {
-            background: #0b1220;
-            border: 1px solid #1e293b;
+            background: var(--dbr-surface);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
-            padding: 0.7rem 0.78rem 0.55rem;
-            margin-top: 0.35rem;
-            margin-bottom: 0.65rem;
+            padding: 1rem 1.05rem 0.85rem;
+            margin-top: 0.45rem;
+            margin-bottom: 1rem;
         }
         .dbr-valuation-panel h3 {
-            margin: 0 0 0.55rem 0;
-            color: #e2e8f0;
+            margin: 0 0 0.75rem 0;
+            color: var(--dbr-text);
+            font-size: 1.12rem;
         }
         .dbr-compare-panel {
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.9rem;
         }
         .dbr-bestworst-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 0.9rem;
+            gap: 1rem;
         }
         .dbr-info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 0.8rem;
+            gap: 1rem;
         }
         .dbr-footer {
-            margin-top: 1.5rem;
-            padding-top: 0.7rem;
-            border-top: 1px solid #1e293b;
-            color: #94a3b8;
-            font-size: 0.83rem;
+            margin-top: 2rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--dbr-border);
+            color: var(--dbr-muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
         }
         div[data-testid="stMarkdownContainer"] p {
-            line-height: 1.4;
+            line-height: 1.55;
+            font-size: 0.92rem;
         }
         div[data-testid="stTextInput"] input {
-            background-color: #0b1220;
-            color: #e2e8f0;
-            border: 1px solid #1e293b;
+            background-color: var(--dbr-surface);
+            color: var(--dbr-text);
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
         }
         div[data-testid="stSelectbox"] > div,
         div[data-testid="stMultiSelect"] > div,
         div[data-testid="stNumberInput"] input {
-            background-color: #0b1220;
+            background-color: var(--dbr-surface);
             border-radius: 12px;
-            border: 1px solid #1e293b;
+            border: 1px solid var(--dbr-border);
         }
         div[data-testid="stTextInput"] input:focus,
         div[data-testid="stNumberInput"] input:focus {
@@ -459,24 +493,27 @@ def _configure_page() -> None:
         }
         div[data-testid="stButton"] button {
             border-radius: 12px;
-            min-height: 2.65rem;
+            min-height: 2.85rem;
+            min-width: 9.5rem;
+            padding: 0 1rem;
+            font-weight: 600;
         }
         div[data-testid="stDataFrame"] {
-            border: 1px solid #1e293b;
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
             overflow: hidden;
         }
         div[data-testid="stDataEditor"] {
-            border: 1px solid #1e293b;
+            border: 1px solid var(--dbr-border);
             border-radius: 12px;
             overflow: hidden;
         }
         button[data-baseweb="tab"] {
-            color: #94a3b8 !important;
+            color: var(--dbr-muted) !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
-            color: #e2e8f0 !important;
-            border-bottom-color: #3b82f6 !important;
+            color: var(--dbr-text) !important;
+            border-bottom-color: var(--dbr-accent) !important;
         }
         [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
             background-color: #3b82f6 !important;
@@ -501,7 +538,7 @@ def _configure_page() -> None:
     )
 
 
-def _section_spacer(height: float = 0.6) -> None:
+def _section_spacer(height: float = 2.0) -> None:
     """
     Insert consistent vertical spacing between major sections.
     """
@@ -540,7 +577,10 @@ def _render_home_page() -> None:
         """,
         unsafe_allow_html=True,
     )
-    st.info("Choose a page from the sidebar to begin.")
+    st.markdown(
+        '<div class="dbr-home-note">Choose a page from the sidebar to begin.</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_page_header(title: str, description: str) -> None:
