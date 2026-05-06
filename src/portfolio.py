@@ -20,6 +20,43 @@ DEFAULT_PORTFOLIO = pd.DataFrame(
 )
 
 
+def _apply_x_axis_breathing_room(fig: go.Figure) -> go.Figure:
+    """
+    Add a small amount of right-side x-axis padding so the latest portfolio
+    points do not crowd the plot boundary.
+    """
+    x_values: list[object] = []
+    for trace in fig.data:
+        trace_x = getattr(trace, "x", None)
+        if trace_x is None:
+            continue
+        x_values.extend(list(trace_x))
+
+    if not x_values:
+        return fig
+
+    datetime_values = pd.to_datetime(pd.Series(x_values), errors="coerce").dropna()
+    if len(datetime_values) >= 2:
+        min_x = datetime_values.min()
+        max_x = datetime_values.max()
+        span = max_x - min_x
+        pad = span * 0.035 if span > pd.Timedelta(0) else pd.Timedelta(days=3)
+        fig.update_xaxes(range=[min_x - (pad * 0.15), max_x + pad], automargin=True)
+        return fig
+
+    numeric_values = pd.to_numeric(pd.Series(x_values), errors="coerce").dropna()
+    if len(numeric_values) >= 2:
+        min_x = float(numeric_values.min())
+        max_x = float(numeric_values.max())
+        span = max_x - min_x
+        pad = span * 0.04 if span else 1.0
+        fig.update_xaxes(range=[min_x - (pad * 0.15), max_x + pad], automargin=True)
+        return fig
+
+    fig.update_xaxes(automargin=True)
+    return fig
+
+
 def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.Figure:
     fig.update_layout(
         template="plotly_dark",
@@ -27,7 +64,7 @@ def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.
         plot_bgcolor="#0B1220",
         font={"family": "Arial, sans-serif", "color": "#E2E8F0"},
         hovermode="x unified",
-        margin={"l": 56, "r": 18, "t": 92, "b": 34},
+        margin={"l": 58, "r": 34, "t": 96, "b": 40},
         legend={
             "orientation": "h",
             "yanchor": "bottom",
@@ -41,8 +78,9 @@ def _apply_dark_layout(fig: go.Figure, title: str, yaxis_title: str = "") -> go.
         height=320,
         title={"text": title, "x": 0.0, "xanchor": "left", "y": 0.985, "yanchor": "top", "font": {"size": 16, "color": "#E2E8F0"}},
     )
-    fig.update_xaxes(showgrid=True, gridcolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, zeroline=False)
+    fig.update_xaxes(showgrid=True, gridcolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, zeroline=False, automargin=True)
     fig.update_yaxes(showgrid=True, gridcolor="#1E293B", zerolinecolor="#1E293B", tickfont={"size": 10, "color": "#94A3B8"}, title_font={"size": 10, "color": "#94A3B8"}, nticks=5)
+    _apply_x_axis_breathing_room(fig)
     return fig
 
 

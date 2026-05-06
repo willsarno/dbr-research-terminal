@@ -36,8 +36,8 @@ def _configure_page() -> None:
     Configure the Streamlit page and inject DBR-style dark UI styling.
     """
     st.set_page_config(
-        page_title="DBR Research Terminal",
-        page_icon="DBR",
+        page_title="Research Terminal",
+        page_icon="RT",
         layout="wide",
         initial_sidebar_state="collapsed",
     )
@@ -47,11 +47,34 @@ def _configure_page() -> None:
         <style>
         :root {
             --dbr-bg: #020617;
-            --dbr-surface: #0b1220;
-            --dbr-border: #1e293b;
+            --dbr-surface: #08111f;
+            --dbr-surface-elevated: #0b1220;
+            --dbr-surface-panel: #0d1628;
+            --dbr-surface-panel-strong: #101a2d;
+            --dbr-surface-overlay: rgba(11, 18, 32, 0.92);
+            --dbr-border: #18263a;
+            --dbr-border-strong: #22324a;
             --dbr-text: #e2e8f0;
             --dbr-muted: #94a3b8;
+            --dbr-muted-soft: #64748b;
             --dbr-accent: #3b82f6;
+            --dbr-accent-soft: rgba(59, 130, 246, 0.16);
+            --dbr-accent-glow: rgba(59, 130, 246, 0.12);
+            --dbr-positive: #10b981;
+            --dbr-positive-soft: rgba(16, 185, 129, 0.14);
+            --dbr-negative: #ef4444;
+            --dbr-negative-soft: rgba(239, 68, 68, 0.14);
+            --dbr-warning: #f59e0b;
+            --dbr-warning-soft: rgba(245, 158, 11, 0.14);
+            --dbr-radius-sm: 10px;
+            --dbr-radius-md: 14px;
+            --dbr-radius-lg: 18px;
+            --dbr-shadow-soft: 0 10px 30px rgba(2, 6, 23, 0.18);
+            --dbr-shadow-panel: 0 14px 40px rgba(2, 6, 23, 0.24);
+            --dbr-shadow-glow: 0 0 0 1px rgba(59, 130, 246, 0.08), 0 18px 42px rgba(2, 6, 23, 0.28);
+            --dbr-transition-fast: 140ms ease;
+            --dbr-transition-base: 200ms ease;
+            --dbr-max-width: 1360px;
             --dbr-space-section: 2rem;
             --dbr-space-card: 1rem;
             --dbr-card-padding-y: 1.15rem;
@@ -60,51 +83,83 @@ def _configure_page() -> None:
         .stApp {
             background: var(--dbr-bg);
             color: var(--dbr-text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-image:
+                radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.08), transparent 26%),
+                radial-gradient(circle at 88% 2%, rgba(59, 130, 246, 0.045), transparent 24%);
         }
         .block-container {
-            max-width: 1280px;
-            padding-top: 1.15rem;
-            padding-bottom: 2.35rem;
+            max-width: var(--dbr-max-width);
+            padding-top: 1rem;
+            padding-bottom: 2.25rem;
+        }
+        header[data-testid="stHeader"] {
+            background: transparent;
+        }
+        #MainMenu,
+        footer {
+            visibility: hidden;
         }
         section[data-testid="stSidebar"] {
             background: var(--dbr-bg);
             border-right: 1px solid var(--dbr-border);
         }
+        section[data-testid="stSidebar"] > div {
+            background:
+                linear-gradient(180deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.0) 18%),
+                var(--dbr-bg);
+        }
+        [data-testid="stSidebarNav"] {
+            display: none;
+        }
         .dbr-sidebar-brand {
-            padding: 0.1rem 0 0.65rem 0;
+            padding: 0.15rem 0 0.9rem 0;
         }
         .dbr-sidebar-kicker {
             color: var(--dbr-muted);
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            font-size: 0.7rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.69rem;
+            margin-bottom: 0.3rem;
         }
         .dbr-sidebar-title {
             color: var(--dbr-text);
             font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 0.22rem;
+            font-size: 1.08rem;
+            margin-bottom: 0.16rem;
         }
         .dbr-sidebar-copy {
             color: var(--dbr-muted);
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             line-height: 1.55;
         }
         .dbr-sidebar-note {
             color: var(--dbr-muted);
             font-size: 0.77rem;
             line-height: 1.45;
-            padding-top: 0.65rem;
+            padding-top: 0.9rem;
             border-top: 1px solid var(--dbr-border);
-            margin-top: 0.7rem;
+            margin-top: 0.9rem;
+        }
+        .dbr-sidebar-nav-title {
+            color: var(--dbr-muted-soft);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: 0.75rem 0 0.45rem 0;
+        }
+        .dbr-nav-spacer {
+            height: 0.35rem;
         }
         .dbr-hero {
-            padding: 1.55rem 1.7rem;
+            padding: 1.75rem 1.85rem;
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
-            background: var(--dbr-surface);
-            margin-bottom: 1.4rem;
+            border-radius: var(--dbr-radius-lg);
+            background:
+                linear-gradient(180deg, rgba(59, 130, 246, 0.06), rgba(59, 130, 246, 0.0) 42%),
+                var(--dbr-surface);
+            box-shadow: var(--dbr-shadow-glow);
+            margin-bottom: 1.55rem;
         }
         .dbr-eyebrow {
             color: var(--dbr-muted);
@@ -119,6 +174,7 @@ def _configure_page() -> None:
             margin: 0;
             color: var(--dbr-text);
             line-height: 1.08;
+            letter-spacing: -0.03em;
         }
         .dbr-subtitle {
             color: var(--dbr-muted);
@@ -136,17 +192,25 @@ def _configure_page() -> None:
         }
         .dbr-mode-guide {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.1rem;
         }
         .dbr-mode-box,
         .dbr-action-card {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(148, 163, 184, 0.03), rgba(148, 163, 184, 0.0)), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
-            padding: 1.1rem 1.15rem;
-            min-height: 138px;
+            border-radius: var(--dbr-radius-md);
+            padding: 1.15rem 1.2rem;
+            min-height: 162px;
+            transition: transform var(--dbr-transition-base), border-color var(--dbr-transition-base), background var(--dbr-transition-base);
+            box-shadow: var(--dbr-shadow-soft);
+        }
+        .dbr-mode-box:hover,
+        .dbr-action-card:hover {
+            border-color: var(--dbr-border-strong);
+            transform: translateY(-1px);
+            box-shadow: var(--dbr-shadow-glow);
         }
         .dbr-mode-box strong,
         .dbr-action-card strong {
@@ -168,6 +232,85 @@ def _configure_page() -> None:
             font-size: 0.92rem;
             max-width: 820px;
         }
+        .dbr-command-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 1rem;
+            margin-top: 1.15rem;
+        }
+        .dbr-command-panel {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.0) 38%), var(--dbr-surface-elevated);
+            border: 1px solid var(--dbr-border);
+            border-radius: var(--dbr-radius-md);
+            padding: 1rem 1.05rem;
+            box-shadow: var(--dbr-shadow-soft);
+        }
+        .dbr-command-panel h3 {
+            margin: 0 0 0.35rem 0;
+            color: var(--dbr-text);
+            font-size: 1.02rem;
+            font-weight: 650;
+        }
+        .dbr-command-panel p {
+            color: var(--dbr-muted);
+            margin: 0;
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+        .dbr-command-list {
+            display: grid;
+            gap: 0.7rem;
+            margin-top: 0.95rem;
+        }
+        .dbr-command-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.8rem 0.9rem;
+            border: 1px solid rgba(59, 130, 246, 0.08);
+            background: rgba(15, 23, 42, 0.52);
+            border-radius: 12px;
+        }
+        .dbr-command-item strong {
+            color: var(--dbr-text);
+            display: block;
+            font-size: 0.93rem;
+            margin-bottom: 0.1rem;
+        }
+        .dbr-command-item span {
+            color: var(--dbr-muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+        .dbr-command-meta {
+            color: var(--dbr-muted-soft);
+            font-size: 0.75rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .dbr-home-subgrid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+            margin-top: 1rem;
+        }
+        .dbr-mini-panel {
+            background: var(--dbr-surface-panel);
+            border: 1px solid var(--dbr-border);
+            border-radius: 12px;
+            padding: 0.9rem 0.95rem;
+        }
+        .dbr-mini-panel h4 {
+            margin: 0 0 0.35rem 0;
+            color: var(--dbr-text);
+            font-size: 0.9rem;
+        }
+        .dbr-mini-panel p {
+            margin: 0;
+            color: var(--dbr-muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
         .dbr-home-note {
             color: var(--dbr-muted);
             font-size: 0.88rem;
@@ -175,7 +318,9 @@ def _configure_page() -> None:
             margin: 0.1rem 0 var(--dbr-space-section) 0;
         }
         .dbr-page-header {
-            margin-bottom: 1rem;
+            margin-bottom: 1.1rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
         }
         .dbr-page-header h2 {
             margin: 0 0 0.3rem 0;
@@ -192,11 +337,12 @@ def _configure_page() -> None:
             font-size: 0.94rem;
         }
         .dbr-profile-card {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.025), rgba(59, 130, 246, 0.0) 30%), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             padding: 1rem 1.1rem 0.95rem;
             margin-bottom: 1rem;
+            box-shadow: var(--dbr-shadow-glow);
         }
         .dbr-profile-title {
             margin: 0;
@@ -223,6 +369,20 @@ def _configure_page() -> None:
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
+        .dbr-toolbar-shell {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.025), rgba(59, 130, 246, 0.0)), var(--dbr-surface-panel);
+            border: 1px solid var(--dbr-border);
+            border-radius: var(--dbr-radius-md);
+            padding: 0.95rem 1rem 0.35rem 1rem;
+            margin-bottom: 1.15rem;
+            box-shadow: var(--dbr-shadow-soft);
+        }
+        .dbr-toolbar-note {
+            color: var(--dbr-muted-soft);
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin: -0.2rem 0 0.8rem 0;
+        }
         .dbr-settings-toolbar {
             display: flex;
             align-items: center;
@@ -233,16 +393,23 @@ def _configure_page() -> None:
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
-            margin: 0.55rem 0 1.5rem 0;
+            margin: 0.6rem 0 1.5rem 0;
         }
         .dbr-card {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(148, 163, 184, 0.025), rgba(148, 163, 184, 0.0)), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             padding: var(--dbr-card-padding-y) var(--dbr-card-padding-x);
             min-height: 106px;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--dbr-shadow-soft);
+            transition: border-color var(--dbr-transition-base), transform var(--dbr-transition-base), box-shadow var(--dbr-transition-base);
+        }
+        .dbr-card:hover {
+            border-color: var(--dbr-border-strong);
+            transform: translateY(-1px);
+            box-shadow: 0 16px 38px rgba(2, 6, 23, 0.22);
         }
         .dbr-card::before,
         .dbr-flag::before,
@@ -258,22 +425,22 @@ def _configure_page() -> None:
         .dbr-card[data-tone="positive"]::before,
         .dbr-flag[data-tone="positive"]::before,
         .dbr-panel[data-tone="positive"]::before {
-            background: #22c55e;
+            background: var(--dbr-positive);
         }
         .dbr-card[data-tone="negative"]::before,
         .dbr-flag[data-tone="negative"]::before,
         .dbr-panel[data-tone="negative"]::before {
-            background: #ef4444;
+            background: var(--dbr-negative);
         }
         .dbr-card[data-tone="neutral"]::before,
         .dbr-flag[data-tone="neutral"]::before,
         .dbr-panel[data-tone="neutral"]::before {
-            background: #3b82f6;
+            background: var(--dbr-accent);
         }
         .dbr-card[data-tone="caution"]::before,
         .dbr-flag[data-tone="caution"]::before,
         .dbr-panel[data-tone="caution"]::before {
-            background: #64748b;
+            background: var(--dbr-warning);
         }
         .dbr-card-label {
             color: var(--dbr-muted);
@@ -295,13 +462,14 @@ def _configure_page() -> None:
             line-height: 1.48;
         }
         .dbr-flag {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(148, 163, 184, 0.02), rgba(148, 163, 184, 0.0)), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             padding: 0.95rem 1rem;
             min-height: 96px;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--dbr-shadow-soft);
         }
         .dbr-flag-label {
             color: var(--dbr-muted);
@@ -322,7 +490,11 @@ def _configure_page() -> None:
             line-height: 1.45;
         }
         .dbr-section-header {
-            margin: 0 0 0.75rem 0;
+            margin: 0 0 0.82rem 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
         }
         .dbr-section-header h3 {
             margin: 0;
@@ -330,6 +502,7 @@ def _configure_page() -> None:
             font-size: 1.28rem;
             font-weight: 650;
             line-height: 1.2;
+            letter-spacing: -0.01em;
         }
         .dbr-section-copy {
             color: var(--dbr-muted);
@@ -337,18 +510,26 @@ def _configure_page() -> None:
             line-height: 1.55;
             margin: 0.24rem 0 0 0;
         }
+        .dbr-section-header::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            margin-top: 0.78rem;
+            min-width: 48px;
+        }
         .dbr-section-title {
             margin: 0 0 0.75rem 0;
             color: var(--dbr-text);
             font-size: 1.15rem;
         }
         .dbr-snapshot {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.025), rgba(59, 130, 246, 0.0)), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             padding: 0.9rem 1rem;
             margin-top: 0.45rem;
             margin-bottom: 1rem;
+            box-shadow: var(--dbr-shadow-soft);
         }
         .dbr-snapshot h3 {
             margin-top: 0;
@@ -373,9 +554,10 @@ def _configure_page() -> None:
             margin: 0.35rem 0 1rem 0;
         }
         .dbr-insight {
-            background: #111827;
-            border-left: 2px solid #3b82f6;
-            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.0) 22%), var(--dbr-surface-panel);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            border-left: 2px solid var(--dbr-accent);
+            border-radius: var(--dbr-radius-sm);
             padding: 0.82rem 0.95rem;
             color: var(--dbr-text);
             font-size: 0.88rem;
@@ -391,9 +573,10 @@ def _configure_page() -> None:
             margin-bottom: 0.26rem;
         }
         .dbr-inline-alert {
-            background: #1f2937;
-            border-left: 2px solid #d97706;
-            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.0) 24%), var(--dbr-surface-panel);
+            border: 1px solid rgba(245, 158, 11, 0.12);
+            border-left: 2px solid var(--dbr-warning);
+            border-radius: var(--dbr-radius-sm);
             padding: 0.8rem 0.95rem;
             color: var(--dbr-muted);
             font-size: 0.86rem;
@@ -413,12 +596,13 @@ def _configure_page() -> None:
             line-height: 1.5;
         }
         .dbr-valuation-panel {
-            background: var(--dbr-surface);
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.025), rgba(59, 130, 246, 0.0)), var(--dbr-surface-elevated);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             padding: 1rem 1.05rem 0.85rem;
             margin-top: 0.45rem;
             margin-bottom: 1rem;
+            box-shadow: var(--dbr-shadow-soft);
         }
         .dbr-valuation-panel h3 {
             margin: 0 0 0.75rem 0;
@@ -450,66 +634,109 @@ def _configure_page() -> None:
             line-height: 1.55;
             font-size: 0.92rem;
         }
+        div[data-testid="stMarkdownContainer"] h1,
+        div[data-testid="stMarkdownContainer"] h2,
+        div[data-testid="stMarkdownContainer"] h3,
+        div[data-testid="stMarkdownContainer"] h4 {
+            letter-spacing: -0.015em;
+        }
         div[data-testid="stTextInput"] input {
-            background-color: var(--dbr-surface);
+            background-color: var(--dbr-surface-elevated);
             color: var(--dbr-text);
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-sm);
+            transition: border-color var(--dbr-transition-fast), background-color var(--dbr-transition-fast);
         }
         div[data-testid="stSelectbox"] > div,
         div[data-testid="stMultiSelect"] > div,
         div[data-testid="stNumberInput"] input {
-            background-color: var(--dbr-surface);
-            border-radius: 12px;
+            background-color: var(--dbr-surface-elevated);
+            border-radius: var(--dbr-radius-sm);
             border: 1px solid var(--dbr-border);
+            transition: border-color var(--dbr-transition-fast), background-color var(--dbr-transition-fast);
         }
         div[data-testid="stTextInput"] input:focus,
         div[data-testid="stNumberInput"] input:focus {
-            border-color: #3b82f6 !important;
-            box-shadow: none !important;
+            border-color: var(--dbr-accent) !important;
+            box-shadow: 0 0 0 1px var(--dbr-accent-glow) !important;
+        }
+        div[data-baseweb="select"] > div {
+            color: var(--dbr-text);
+        }
+        label[data-testid="stWidgetLabel"] p {
+            color: var(--dbr-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            font-weight: 600;
         }
         div[data-testid="stButton"] button[kind="primary"] {
-            background: #3b82f6;
-            color: #e2e8f0;
-            border: 1px solid #3b82f6;
+            background: var(--dbr-accent);
+            color: var(--dbr-text);
+            border: 1px solid var(--dbr-accent);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 18px rgba(59, 130, 246, 0.16);
         }
         div[data-testid="stButton"] button[kind="secondary"] {
             background: transparent;
-            color: #e2e8f0;
-            border: 1px solid #334155;
+            color: var(--dbr-text);
+            border: 1px solid var(--dbr-border-strong);
         }
         div[data-testid="stButton"] button:hover {
-            box-shadow: none;
             filter: none;
+            transform: translateY(-1px);
         }
         div[data-testid="stButton"] button[kind="primary"]:hover {
-            background: #2563eb;
-            border-color: #2563eb;
+            background: #2f73db;
+            border-color: #2f73db;
         }
         div[data-testid="stButton"] button[kind="secondary"]:hover {
-            background: #0b1220;
-            border-color: #475569;
-            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.06);
+            border-color: var(--dbr-accent);
+            border-radius: var(--dbr-radius-sm);
         }
         div[data-testid="stButton"] button {
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-sm);
             min-height: 2.85rem;
             min-width: 9.5rem;
             padding: 0 1rem;
             font-weight: 600;
+            transition: transform var(--dbr-transition-fast), background var(--dbr-transition-fast), border-color var(--dbr-transition-fast), box-shadow var(--dbr-transition-fast);
+        }
+        section[data-testid="stSidebar"] div[data-testid="stButton"] button {
+            width: 100%;
+            justify-content: flex-start;
+            min-height: 2.6rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            padding: 0 0.9rem;
+        }
+        div[data-testid="stExpander"] {
+            border: 1px solid var(--dbr-border);
+            border-radius: var(--dbr-radius-md);
+            background: var(--dbr-surface-elevated);
+            overflow: hidden;
+        }
+        div[data-testid="stExpander"] summary {
+            background: var(--dbr-surface-elevated);
         }
         div[data-testid="stDataFrame"] {
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             overflow: hidden;
+            background: var(--dbr-surface-elevated);
+            box-shadow: var(--dbr-shadow-soft);
         }
         div[data-testid="stDataEditor"] {
             border: 1px solid var(--dbr-border);
-            border-radius: 12px;
+            border-radius: var(--dbr-radius-md);
             overflow: hidden;
+            background: var(--dbr-surface-elevated);
+            box-shadow: var(--dbr-shadow-soft);
         }
         button[data-baseweb="tab"] {
             color: var(--dbr-muted) !important;
+            background: transparent !important;
+            border-radius: 8px 8px 0 0 !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             color: var(--dbr-text) !important;
@@ -528,9 +755,62 @@ def _configure_page() -> None:
         }
         div[data-testid="stPlotlyChart"] {
             margin-bottom: 0.7rem;
+            padding: 0.9rem 1rem 0.6rem 1rem;
+            background: linear-gradient(180deg, rgba(148, 163, 184, 0.018), rgba(148, 163, 184, 0.0)), var(--dbr-surface-elevated);
+            border: 1px solid var(--dbr-border);
+            border-radius: var(--dbr-radius-md);
+            box-shadow: var(--dbr-shadow-soft);
+            overflow: hidden;
+            position: relative;
         }
         div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stPlotlyChart"]) {
             padding-top: 0.1rem;
+            overflow: hidden;
+        }
+        div[data-testid="stPlotlyChart"] > div,
+        div[data-testid="stPlotlyChart"] .js-plotly-plot,
+        div[data-testid="stPlotlyChart"] .plot-container,
+        div[data-testid="stPlotlyChart"] .svg-container,
+        div[data-testid="stPlotlyChart"] .main-svg {
+            border-radius: 12px !important;
+        }
+        div[data-testid="stPlotlyChart"] .js-plotly-plot,
+        div[data-testid="stPlotlyChart"] .plot-container,
+        div[data-testid="stPlotlyChart"] .svg-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+        }
+        div[data-testid="stPlotlyChart"] .modebar {
+            right: 10px !important;
+            top: 10px !important;
+        }
+        div[data-testid="stPlotlyChart"] .plot-container {
+            overflow: hidden !important;
+        }
+        div[data-testid="stAlert"] {
+            border-radius: var(--dbr-radius-sm);
+            border: 1px solid var(--dbr-border);
+            background: var(--dbr-surface-panel);
+        }
+        .dbr-surface,
+        .dbr-surface-soft,
+        .dbr-chart-shell {
+            background: var(--dbr-surface-elevated);
+            border: 1px solid var(--dbr-border);
+            border-radius: var(--dbr-radius-md);
+            box-shadow: var(--dbr-shadow-soft);
+        }
+        .dbr-chart-shell {
+            padding: 0.75rem 0.85rem 0.45rem 0.85rem;
+        }
+        @media (max-width: 1100px) {
+            .dbr-command-grid {
+                grid-template-columns: 1fr;
+            }
+            .dbr-home-subgrid {
+                grid-template-columns: 1fr;
+            }
         }
         </style>
         """,
@@ -553,32 +833,103 @@ def _render_home_page() -> None:
         """
         <div class="dbr-hero">
             <div class="dbr-eyebrow">Rules-Based Equity Research</div>
-            <h1 class="dbr-title">DBR Research Terminal</h1>
+            <h1 class="dbr-title">Research Terminal</h1>
             <p class="dbr-subtitle">Interactive public-market research built on transparent rules, financial statements, valuation data, portfolio context, and market behavior.</p>
             <div class="dbr-tagline">Rules-based investment research for equities, comps, and portfolio risk.</div>
             <div class="dbr-hero-copy">
-                Use the terminal to research one company in depth, compare multiple businesses side by side, or analyze a portfolio with risk and return diagnostics.
+                Move directly into company work, peer work, or portfolio diagnostics from a single command-center landing page.
             </div>
             <div class="dbr-mode-guide">
                 <div class="dbr-action-card">
-                    <strong>Analyze a Company</strong>
-                    <p>Research one public company with financial trends, valuation context, quality signals, and market behavior.</p>
+                    <strong>Company Research</strong>
+                    <p>Run single-ticker analysis with financial trends, valuation context, narrative signals, and stock behavior.</p>
                 </div>
                 <div class="dbr-action-card">
-                    <strong>Compare Companies</strong>
-                    <p>Compare peers side by side on growth, profitability, valuation, balance sheet strength, and market performance.</p>
+                    <strong>Peer Comparison</strong>
+                    <p>Compare multiple companies side by side on growth, profitability, balance sheet strength, valuation, and relative price action.</p>
                 </div>
                 <div class="dbr-action-card">
-                    <strong>Analyze a Portfolio</strong>
-                    <p>Stress test a custom portfolio with weighted returns, risk, correlations, benchmark context, and what-if scenarios.</p>
+                    <strong>Portfolio Lab</strong>
+                    <p>Evaluate a live portfolio with benchmark-relative returns, drawdowns, correlations, and what-if scenario analysis.</p>
+                </div>
+            </div>
+            <div class="dbr-command-grid">
+                <div class="dbr-command-panel">
+                    <h3>Primary Workflows</h3>
+                    <p>Choose the workflow that matches the analysis task. All actions below route into the existing application pages.</p>
+                    <div class="dbr-command-list">
+                        <div class="dbr-command-item">
+                            <div>
+                                <strong>Company Research</strong>
+                                <span>Single-company research across financials, valuation, narrative, and stock performance.</span>
+                            </div>
+                            <div class="dbr-command-meta">1 ticker</div>
+                        </div>
+                        <div class="dbr-command-item">
+                            <div>
+                                <strong>Peer Comparison</strong>
+                                <span>Multi-ticker comparisons with ranking cards, comparison charts, and price-relative views.</span>
+                            </div>
+                            <div class="dbr-command-meta">many tickers</div>
+                        </div>
+                        <div class="dbr-command-item">
+                            <div>
+                                <strong>Portfolio Lab</strong>
+                                <span>Portfolio return, volatility, drawdown, correlation, benchmark, and scenario analysis.</span>
+                            </div>
+                            <div class="dbr-command-meta">weighted basket</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="dbr-command-panel">
+                        <h3>Embedded Intelligence</h3>
+                        <p>The current platform already includes narrative, quality scoring, benchmark comparison, and diagnostic availability checks inside the live analysis pages.</p>
+                        <div class="dbr-home-subgrid">
+                            <div class="dbr-mini-panel">
+                                <h4>Signals & Insights</h4>
+                                <p>Available inside Company Research through narrative, quality scoring, what changed, and bullish/bearish signal blocks.</p>
+                            </div>
+                            <div class="dbr-mini-panel">
+                                <h4>Market / Peer View</h4>
+                                <p>Available inside Peer Comparison through price-relative views, valuation ranking, and side-by-side operating context.</p>
+                            </div>
+                            <div class="dbr-mini-panel">
+                                <h4>Portfolio Risk</h4>
+                                <p>Available inside Portfolio Lab through benchmark-relative performance, drawdown comparison, and correlation diagnostics.</p>
+                            </div>
+                            <div class="dbr-mini-panel">
+                                <h4>Execution Model</h4>
+                                <p>All workflows use live yfinance-backed data and the existing deterministic research logic already built into the app.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    action_col_1, action_col_2, action_col_3, action_col_4 = st.columns(4)
+    with action_col_1:
+        if st.button("Open Company Research", type="primary", use_container_width=True):
+            st.session_state["page"] = "Company Research"
+            st.rerun()
+    with action_col_2:
+        if st.button("Open Peer Comparison", use_container_width=True):
+            st.session_state["page"] = "Peer Comparison"
+            st.rerun()
+    with action_col_3:
+        if st.button("Open Portfolio Lab", use_container_width=True):
+            st.session_state["page"] = "Portfolio Lab"
+            st.rerun()
+    with action_col_4:
+        if st.button("Open Signals & Insight", use_container_width=True):
+            st.session_state["page"] = "Company Research"
+            st.rerun()
+
     st.markdown(
-        '<div class="dbr-home-note">Choose a page from the sidebar to begin.</div>',
+        '<div class="dbr-home-note">Use the launch buttons above or the sidebar navigation to move directly into an analysis workflow.</div>',
         unsafe_allow_html=True,
     )
 
@@ -613,33 +964,45 @@ def _render_sidebar() -> str:
     """
     Render the branded sidebar navigation and return the selected page.
     """
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Home"
+
     with st.sidebar:
         st.markdown(
             """
             <div class="dbr-sidebar-brand">
-                <div class="dbr-sidebar-kicker">DBR</div>
+                <div class="dbr-sidebar-kicker">RT</div>
                 <div class="dbr-sidebar-title">Research Terminal</div>
-                <div class="dbr-sidebar-copy">Rules-based workflows for company research, peer comps, and portfolio risk.</div>
+                <div class="dbr-sidebar-copy">Institutional-grade workflows for company research, peer comps, and portfolio risk.</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-        page = st.radio(
-            "Navigation",
-            ["Home", "Company Research", "Peer Comparison", "Portfolio Lab"],
-        )
+        st.markdown('<div class="dbr-sidebar-nav-title">Navigation</div>', unsafe_allow_html=True)
+        pages = ["Home", "Company Research", "Peer Comparison", "Portfolio Lab"]
+        current_page = st.session_state.get("page", "Home")
+        for page_name in pages:
+            button_type = "primary" if current_page == page_name else "secondary"
+            if st.button(page_name, key=f"sidebar_nav_{page_name}", type=button_type, use_container_width=True):
+                st.session_state["page"] = page_name
+                current_page = page_name
+                st.rerun()
+        st.markdown('<div class="dbr-nav-spacer"></div>', unsafe_allow_html=True)
         st.markdown(
             '<div class="dbr-sidebar-note">Data from Yahoo Finance/yfinance. Not investment advice.</div>',
             unsafe_allow_html=True,
         )
-    return page
+    return st.session_state.get("page", "Home")
 
 
 def _open_settings_panel(title: str = "Analysis Settings") -> None:
     """
     Render a compact settings toolbar label.
     """
-    st.markdown(f'<div class="dbr-toolbar-label">{escape(title)}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="dbr-toolbar-shell"><div class="dbr-toolbar-label">{escape(title)}</div><div class="dbr-toolbar-note">Configure the live analysis inputs below. Existing calculations and data contracts remain unchanged.</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _close_settings_panel() -> None:
@@ -855,10 +1218,10 @@ def _render_summary_strip(items: list[tuple[str, str, str, str]]) -> None:
 
 def _render_dbr_insight(text: str) -> None:
     """
-    Render a compact DBR insight bar.
+    Render a compact terminal insight bar.
     """
     st.markdown(
-        f'<div class="dbr-insight"><strong>DBR Insight</strong>{escape(text)}</div>',
+        f'<div class="dbr-insight"><strong>Terminal Insight</strong>{escape(text)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -1180,7 +1543,7 @@ def _display_company_summary_strip(metrics_df: pd.DataFrame, company_info_df: pd
         profitability_tone = "positive" if net_income >= 0 else "negative"
 
     summary_items = [
-        ("DBR Verdict", quality.get("label", "Mixed"), f"Score {quality.get('score', 'N/A')}/100", "neutral"),
+        ("Research Verdict", quality.get("label", "Mixed"), f"Score {quality.get('score', 'N/A')}/100", "neutral"),
         ("Growth Read", growth_read, format_percent(revenue_growth), growth_tone),
         ("Profitability", profitability_read, format_money(net_income), profitability_tone),
         ("Key Risk", risks[0] if risks else "No major risk flagged", "Highest-priority watch item", "caution" if risks else "neutral"),
@@ -2376,7 +2739,7 @@ def main() -> None:
     st.markdown(
         """
         <div class="dbr-footer">
-            DBR Research Terminal is a rules-based research aid. Data is sourced from Yahoo Finance/yfinance and may be delayed or incomplete. Not investment advice.
+            Research Terminal is a rules-based research aid. Data is sourced from Yahoo Finance/yfinance and may be delayed or incomplete. Not investment advice.
         </div>
         """,
         unsafe_allow_html=True,
